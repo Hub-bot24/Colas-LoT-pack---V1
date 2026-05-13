@@ -1,1 +1,0 @@
-v73 - force landscape mode on phones for full-width usability
