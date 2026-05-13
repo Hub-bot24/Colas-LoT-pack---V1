@@ -1,1 +1,0 @@
-v75 crop usable mobile patch - based on v75 fixed signature touch alignment; diagram crop area enlarged for phone/tablet landscape
