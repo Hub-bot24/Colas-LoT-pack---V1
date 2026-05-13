@@ -1,0 +1,1 @@
+v69 - mobile wide table horizontal scroll fix
