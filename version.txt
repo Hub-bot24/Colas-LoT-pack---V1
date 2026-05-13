@@ -1,1 +1,0 @@
-v76 - v75 base; diagram tab made portrait/upright friendly only; no whole-app landscape force
