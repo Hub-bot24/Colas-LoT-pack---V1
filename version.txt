@@ -1,0 +1,1 @@
+v48 - logo embedded directly into HTML for print preview and GitHub Pages
