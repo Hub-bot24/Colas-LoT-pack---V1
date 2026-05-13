@@ -1,0 +1,1 @@
+v64 - fixed duplicate signature canvas ID; client signature now prints
