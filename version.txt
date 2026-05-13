@@ -1,0 +1,1 @@
+v75 - fixed signature touch alignment on phone/landscape
