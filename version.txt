@@ -1,0 +1,1 @@
+v75 crop redraw fix - enlarged mobile crop preview, larger touch handles, less aggressive redraw threshold
