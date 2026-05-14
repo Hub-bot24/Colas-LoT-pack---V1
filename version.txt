@@ -1,1 +1,1 @@
-v82 - portrait normal, landscape auto-fit, diagram cleaner redraw fixed
+v84 - crop no reset on zoom, fine crop controls, input zoom fix
