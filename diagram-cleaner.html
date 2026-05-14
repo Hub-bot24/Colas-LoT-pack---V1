@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes">
+<title>COLAS Diagram Crop v94</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif;background:#eef2f6;color:#111}
+.header{height:44px;background:#00447c;color:#fff;display:flex;align-items:center;padding:0 10px;font-size:18px;font-weight:800}
+.header span{color:#ffe600;font-size:13px;margin-left:8px}
+.screen{height:calc(100% - 44px);display:flex;flex-direction:column;overflow:hidden}
+.upload{flex:0 0 auto;background:#fff;padding:8px;border-bottom:1px solid #ccd3df}
+.upload input{width:100%;font-size:16px;min-height:42px}
+.status{margin:6px 0 0 0;font-weight:800;color:#00447c;font-size:13px}
+.previewArea{flex:1 1 auto;min-height:0;overflow:auto;background:#fff;padding:8px;-webkit-overflow-scrolling:touch}
+canvas{display:block;background:#fff;border:2px solid #ccd3df;border-radius:8px;max-width:100%;height:auto;margin:0 auto}
+.controls{flex:0 0 auto;background:#fff;border-top:3px solid #00447c;padding:8px;box-shadow:0 -3px 12px rgba(0,0,0,.18);z-index:99}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px}
+button{min-height:38px;border:0;border-radius:8px;background:#00447c;color:#fff;font-weight:800;font-size:13px;padding:6px}
+button.secondary{background:#344054}
+.sliderGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+.sliderRow label{display:flex;justify-content:space-between;font-weight:800;font-size:12px;line-height:1.1}
+input[type=range]{width:100%;height:22px}
+#result{display:none}
+@media screen and (max-height:520px){
+  .header{height:36px;font-size:15px}
+  .screen{height:calc(100% - 36px)}
+  .upload{padding:5px}
+  .upload input{min-height:34px}
+  .status{font-size:12px;margin-top:3px}
+  .previewArea{padding:5px}
+  .controls{padding:5px}
+  .quick{gap:4px;margin-bottom:4px}
+  button{min-height:30px;font-size:12px;padding:4px}
+  input[type=range]{height:18px}
+}
+</style>
+
+<style id="V94_SLIDER_TOUCH_FIX">
+/* Stop the page moving while adjusting sliders */
+.controls,
+.sliderGrid,
+.sliderRow,
+.sliderRow input[type=range]{
+  touch-action:none !important;
+  -ms-touch-action:none !important;
+  overscroll-behavior:contain !important;
+}
+input[type=range]{
+  user-select:none !important;
+  -webkit-user-select:none !important;
+}
+.previewArea{
+  overscroll-behavior:contain !important;
+}
+</style>
+
+</head>
+<body>
+<div class="header">COLAS Diagram Crop <span>v94</span></div>
+<div class="screen">
+  <div class="upload">
+    <input type="file" id="fileInput" accept="image/*">
+    <p class="status" id="status">Upload photo. Sliders stay fixed here.</p>
+  </div>
+
+  <div class="previewArea" id="previewArea">
+    <canvas id="preview"></canvas>
+    <canvas id="result"></canvas>
+  </div>
+
+  <div class="controls">
+    <div class="quick">
+      <button onclick="preset('full')">Full</button>
+      <button onclick="preset('paper')">Paper</button>
+      <button onclick="cleanAndSend()">Use</button>
+      <button class="secondary" onclick="downloadPng()">PNG</button>
+    </div>
+    <div class="sliderGrid">
+      <div class="sliderRow"><label>Left <span id="leftVal">5%</span></label><input id="left" type="range" min="0" max="95" value="5"></div>
+      <div class="sliderRow"><label>Right <span id="rightVal">95%</span></label><input id="right" type="range" min="5" max="100" value="95"></div>
+      <div class="sliderRow"><label>Top <span id="topVal">8%</span></label><input id="top" type="range" min="0" max="95" value="8"></div>
+      <div class="sliderRow"><label>Bottom <span id="bottomVal">94%</span></label><input id="bottom" type="range" min="5" max="100" value="94"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const fileInput=document.getElementById('fileInput');
+const preview=document.getElementById('preview');
+const result=document.getElementById('result');
+const pctx=preview.getContext('2d');
+const rctx=result.getContext('2d');
+const statusEl=document.getElementById('status');
+const L=document.getElementById('left'), R=document.getElementById('right'), T=document.getElementById('top'), B=document.getElementById('bottom');
+let img=null;
+
+function status(t){statusEl.textContent=t;}
+
+function vals(){
+  let l=Number(L.value), r=Number(R.value), t=Number(T.value), b=Number(B.value);
+  if(r<=l+3){r=l+3;R.value=r}
+  if(b<=t+3){b=t+3;B.value=b}
+  document.getElementById('leftVal').textContent=l+'%';
+  document.getElementById('rightVal').textContent=r+'%';
+  document.getElementById('topVal').textContent=t+'%';
+  document.getElementById('bottomVal').textContent=b+'%';
+  return {l,r,t,b};
+}
+
+function fitPreview(){
+  if(!img)return;
+  const area=document.getElementById('previewArea');
+  const maxW=Math.max(320, area.clientWidth-18);
+  const maxH=Math.max(220, area.clientHeight-18);
+  const scale=Math.min(maxW/img.width, maxH/img.height, 1);
+  preview.width=Math.max(320, Math.round(img.width*scale));
+  preview.height=Math.round(img.height*(preview.width/img.width));
+  drawPreview();
+}
+
+function drawPreview(){
+  if(!img)return;
+  const v=vals();
+  pctx.clearRect(0,0,preview.width,preview.height);
+  pctx.drawImage(img,0,0,preview.width,preview.height);
+  const x=preview.width*(v.l/100), y=preview.height*(v.t/100);
+  const w=preview.width*((v.r-v.l)/100), h=preview.height*((v.b-v.t)/100);
+  pctx.fillStyle='rgba(0,0,0,.38)';
+  pctx.fillRect(0,0,preview.width,y);
+  pctx.fillRect(0,y,x,h);
+  pctx.fillRect(x+w,y,preview.width-(x+w),h);
+  pctx.fillRect(0,y+h,preview.width,preview.height-(y+h));
+  pctx.strokeStyle='#007bff'; pctx.lineWidth=5; pctx.strokeRect(x,y,w,h);
+}
+[L,R,T,B].forEach(el=>el.addEventListener('input',drawPreview));
+
+function preset(type){
+  if(type==='full'){L.value=0;R.value=100;T.value=0;B.value=100}
+  if(type==='paper'){L.value=5;R.value=95;T.value=8;B.value=94}
+  drawPreview();
+}
+
+fileInput.addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    img=new Image();
+    img.onload=()=>{preset('paper');fitPreview();status('Adjust sliders, then press Use.')};
+    img.onerror=()=>status('Image failed. Try JPG/PNG.');
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function cleanDiagram(){
+  if(!img){status('Upload photo first.');return null}
+  const v=vals();
+  const sx=Math.round(img.width*(v.l/100)), sy=Math.round(img.height*(v.t/100));
+  const sw=Math.round(img.width*((v.r-v.l)/100)), sh=Math.round(img.height*((v.b-v.t)/100));
+  result.width=sw; result.height=sh;
+  rctx.clearRect(0,0,sw,sh);
+  rctx.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
+  const imgData=rctx.getImageData(0,0,sw,sh), d=imgData.data;
+  for(let i=0;i<d.length;i+=4){
+    const r=d[i],g=d[i+1],b=d[i+2],avg=(r+g+b)/3,max=Math.max(r,g,b),min=Math.min(r,g,b),sat=max-min;
+    const ink=(avg<190 || (avg<225 && sat>20)) ? 0 : 255;
+    d[i]=ink;d[i+1]=ink;d[i+2]=ink;d[i+3]=255;
+  }
+  rctx.putImageData(imgData,0,0);
+  return result.toDataURL('image/png');
+}
+
+function cleanAndSend(){
+  const data=cleanDiagram(); if(!data)return;
+  try{localStorage.setItem('COLAS_CLEAN_DIAGRAM_DATA',data);localStorage.setItem('COLAS_CLEAN_DIAGRAM_TIME',String(Date.now()))}catch(e){}
+  try{window.parent.postMessage({type:'COLAS_CLEAN_DIAGRAM',data:data},'*')}catch(e){}
+  try{if(window.parent && window.parent.colasReceiveCleanDiagram) window.parent.colasReceiveCleanDiagram(data)}catch(e){}
+  
+  try{ 
+    var data2 = localStorage.getItem('COLAS_CLEAN_DIAGRAM_DATA');
+    window.parent.postMessage({type:'COLAS_CLEAN_DIAGRAM',data:data2},'*');
+  }catch(e){}
+  status('Sent to Final Diagram and print preview.');
+
+}
+
+function downloadPng(){
+  const data=cleanDiagram(); if(!data)return;
+  const a=document.createElement('a'); a.href=data; a.download='clean-diagram-v94.png'; a.click();
+}
+
+window.addEventListener('resize',()=>{if(img)fitPreview()});
+</script>
+
+<script id="V94_SLIDER_TOUCH_LOCK">
+(function(){
+  function lockRange(el){
+    if(!el) return;
+    ['touchstart','touchmove','pointerdown','pointermove'].forEach(function(type){
+      el.addEventListener(type,function(e){
+        if(e.cancelable) e.preventDefault();
+        e.stopPropagation();
+      },{passive:false});
+    });
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('input[type=range]').forEach(lockRange);
+  });
+})();
+</script>
+
+</body>
+</html>

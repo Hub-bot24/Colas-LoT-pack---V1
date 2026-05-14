@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Clear COLAS App Cache</title>
+<style>
+body{font-family:Arial,sans-serif;background:#eef1f5;margin:0;padding:20px;text-align:center}
+.card{background:white;border-radius:14px;padding:22px;max-width:620px;margin:40px auto;box-shadow:0 2px 12px rgba(0,0,0,.12)}
+h1{color:#00447c}
+button,a{display:inline-block;margin:10px;padding:14px 20px;background:#00447c;color:white;text-decoration:none;border-radius:10px;border:0;font-weight:800;font-size:16px}
+.status{font-weight:700;margin-top:15px}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>COLAS App Cache Reset</h1>
+<p>This clears the old v82/v83 cached app from your phone.</p>
+<button onclick="clearAll()">Clear Cache Now</button>
+<p class="status" id="status">Press the button.</p>
+<a href="index.html?v=87">Open v87 Lot Pack</a>
+<a href="diagram-cleaner-v86.html?v=87">Open v87 Cleaner</a>
+</div>
+
+<script>
+async function clearAll(){
+  const s=document.getElementById('status');
+  s.textContent='Clearing cache...';
+
+  try{
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for(const reg of regs){ await reg.unregister(); }
+    }
+
+    if(window.caches){
+      const names = await caches.keys();
+      for(const name of names){ await caches.delete(name); }
+    }
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    s.textContent='Cache cleared. Now tap Open v87 Lot Pack.';
+  }catch(e){
+    s.textContent='Cache clear attempted. Now tap Open v87 Lot Pack.';
+  }
+}
+</script>
+</body>
+</html>
