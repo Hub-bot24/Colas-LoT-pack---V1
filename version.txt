@@ -1,0 +1,1 @@
+v92 - fixed crop slider overlay stays visible while adjusting image
