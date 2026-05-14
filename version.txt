@@ -1,0 +1,1 @@
+v91 - crop sliders placed directly under image; no scrolling up/down to adjust

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0,user-scalable=yes">
+<title>COLAS Diagram Cleaner v91</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eef2f6;font-family:Arial,sans-serif;overflow-x:hidden}
+.header{
+  background:#004b87;color:#fff;padding:9px 12px;font-size:20px;font-weight:bold;
+  position:sticky;top:0;z-index:999
+}
+.header span{color:#ffe600;font-size:14px}
+.wrap{padding:8px;max-width:980px;margin:0 auto}
+.card{background:#fff;border-radius:12px;padding:10px;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+button,input{min-height:42px;font-size:16px}
+button{border:none;background:#004b87;color:#fff;padding:9px 12px;border-radius:9px;font-weight:bold}
+button.secondary{background:#344054}
+.status{font-weight:bold;color:#00447c;margin:6px 0}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(95px,1fr));gap:7px}
+.stage{
+  position:relative;
+  background:white;
+  border:2px solid #ccd3df;
+  border-radius:12px;
+  overflow:hidden;
+}
+#preview{
+  display:block;
+  width:100%;
+  height:auto;
+  background:#fff;
+}
+.sliderPanel{
+  position:sticky;
+  bottom:0;
+  z-index:100;
+  background:rgba(255,255,255,.96);
+  border:2px solid #004b87;
+  border-radius:12px;
+  padding:8px;
+  box-shadow:0 -2px 10px rgba(0,0,0,.14);
+}
+.sliderGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px 12px;
+}
+.sliderRow label{
+  display:flex;
+  justify-content:space-between;
+  font-weight:800;
+  font-size:13px;
+  margin-bottom:2px;
+}
+input[type=range]{width:100%;height:32px}
+#result{width:100%;height:auto;background:white;border:2px solid #ccd3df;border-radius:10px}
+.smallNote{font-size:13px;font-weight:700;background:#fff7d6;border:1px solid #c99a00;border-radius:8px;padding:7px;margin-top:6px}
+@media screen and (orientation:landscape) and (max-height:600px){
+  .header{font-size:17px;padding:6px 9px}
+  .wrap{padding:5px}
+  .card{padding:7px;margin-bottom:6px}
+  h2{font-size:16px;margin:3px 0}
+  .sliderPanel{padding:6px}
+  .sliderRow label{font-size:12px}
+  input[type=range]{height:26px}
+  button,input{min-height:36px;font-size:14px}
+}
+</style>
+</head>
+<body>
+<div class="header">COLAS Diagram Cleaner <span>v91 SLIDERS ON IMAGE</span></div>
+
+<div class="wrap">
+  <div class="card">
+    <input type="file" id="fileInput" accept="image/*">
+    <p class="status" id="status">Upload a site diagram photo.</p>
+    <div class="smallNote">Crop controls stay with the image. No scrolling up and down to adjust.</div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <button type="button" onclick="preset('full')">Full</button>
+      <button type="button" onclick="preset('paper')">Auto Paper</button>
+      <button type="button" onclick="preset('middle')">Middle</button>
+      <button type="button" onclick="cleanDiagram()">Clean</button>
+      <button type="button" onclick="useInLotPack()" class="secondary">Use in Lot Pack</button>
+      <button type="button" onclick="downloadPng()" class="secondary">Download</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <canvas id="preview"></canvas>
+  </div>
+
+  <div class="sliderPanel">
+    <div class="sliderGrid">
+      <div class="sliderRow"><label>Left <span id="leftVal">5%</span></label><input id="left" type="range" min="0" max="95" value="5"></div>
+      <div class="sliderRow"><label>Right <span id="rightVal">95%</span></label><input id="right" type="range" min="5" max="100" value="95"></div>
+      <div class="sliderRow"><label>Top <span id="topVal">8%</span></label><input id="top" type="range" min="0" max="95" value="8"></div>
+      <div class="sliderRow"><label>Bottom <span id="bottomVal">94%</span></label><input id="bottom" type="range" min="5" max="100" value="94"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Clean Result</h2>
+    <canvas id="result"></canvas>
+  </div>
+</div>
+
+<script>
+const fileInput=document.getElementById('fileInput');
+const preview=document.getElementById('preview');
+const result=document.getElementById('result');
+const pctx=preview.getContext('2d');
+const rctx=result.getContext('2d');
+const statusEl=document.getElementById('status');
+const L=document.getElementById('left'), R=document.getElementById('right'), T=document.getElementById('top'), B=document.getElementById('bottom');
+let img=null;
+
+function status(t){statusEl.textContent=t;}
+
+function vals(){
+  let l=Number(L.value), r=Number(R.value), t=Number(T.value), b=Number(B.value);
+  if(r <= l+3){ r=l+3; R.value=r; }
+  if(b <= t+3){ b=t+3; B.value=b; }
+  document.getElementById('leftVal').textContent=l+'%';
+  document.getElementById('rightVal').textContent=r+'%';
+  document.getElementById('topVal').textContent=t+'%';
+  document.getElementById('bottomVal').textContent=b+'%';
+  return {l,r,t,b};
+}
+
+function fitPreview(){
+  if(!img)return;
+  const headerReserve = window.innerWidth > window.innerHeight ? 185 : 260;
+  const maxW = Math.min(window.innerWidth-16, 960);
+  const maxH = Math.max(260, window.innerHeight - headerReserve);
+  const scale = Math.min(maxW/img.width, maxH/img.height, 1);
+  preview.width = Math.max(320, Math.round(img.width*scale));
+  preview.height = Math.round(img.height*(preview.width/img.width));
+  drawPreview();
+}
+
+function drawPreview(){
+  if(!img)return;
+  const v=vals();
+  pctx.clearRect(0,0,preview.width,preview.height);
+  pctx.drawImage(img,0,0,preview.width,preview.height);
+  const x=preview.width*(v.l/100), y=preview.height*(v.t/100);
+  const w=preview.width*((v.r-v.l)/100), h=preview.height*((v.b-v.t)/100);
+  pctx.fillStyle='rgba(0,0,0,0.35)';
+  pctx.fillRect(0,0,preview.width,y);
+  pctx.fillRect(0,y,x,h);
+  pctx.fillRect(x+w,y,preview.width-(x+w),h);
+  pctx.fillRect(0,y+h,preview.width,preview.height-(y+h));
+  pctx.strokeStyle='#007bff';
+  pctx.lineWidth=5;
+  pctx.strokeRect(x,y,w,h);
+}
+[L,R,T,B].forEach(el=>el.addEventListener('input',drawPreview));
+
+function preset(type){
+  if(type==='full'){L.value=0;R.value=100;T.value=0;B.value=100;}
+  if(type==='paper'){L.value=5;R.value=95;T.value=8;B.value=94;}
+  if(type==='middle'){L.value=5;R.value=95;T.value=25;B.value=75;}
+  drawPreview();
+}
+
+fileInput.addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    img=new Image();
+    img.onload=()=>{ preset('paper'); fitPreview(); status('Adjust sliders under the image, then press Clean.'); };
+    img.onerror=()=>status('Image failed to load. Try JPG/PNG.');
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function cleanDiagram(){
+  if(!img){status('Upload an image first.');return null;}
+  const v=vals();
+  const sx=Math.round(img.width*(v.l/100)), sy=Math.round(img.height*(v.t/100));
+  const sw=Math.round(img.width*((v.r-v.l)/100)), sh=Math.round(img.height*((v.b-v.t)/100));
+  result.width=sw; result.height=sh;
+  rctx.clearRect(0,0,sw,sh);
+  rctx.drawImage(img,sx,sy,sw,sh,0,0,sw,sh);
+  const imgData=rctx.getImageData(0,0,sw,sh), d=imgData.data;
+  for(let i=0;i<d.length;i+=4){
+    const r=d[i],g=d[i+1],b=d[i+2],avg=(r+g+b)/3,max=Math.max(r,g,b),min=Math.min(r,g,b),sat=max-min;
+    const ink=(avg<190 || (avg<225 && sat>20)) ? 0 : 255;
+    d[i]=ink; d[i+1]=ink; d[i+2]=ink; d[i+3]=255;
+  }
+  rctx.putImageData(imgData,0,0);
+  status('Cleaned. Press Use in Lot Pack.');
+  return result.toDataURL('image/png');
+}
+
+function useInLotPack(){
+  let data = result.width ? result.toDataURL('image/png') : cleanDiagram();
+  if(!data){return;}
+  try{
+    localStorage.setItem('COLAS_CLEAN_DIAGRAM_DATA', data);
+    localStorage.setItem('COLAS_CLEAN_DIAGRAM_TIME', String(Date.now()));
+  }catch(e){}
+  try{ if(window.parent && window.parent.colasReceiveCleanDiagram) window.parent.colasReceiveCleanDiagram(data); }catch(e){}
+  try{ if(window.opener && window.opener.colasReceiveCleanDiagram) window.opener.colasReceiveCleanDiagram(data); }catch(e){}
+  status('Sent to Lot Pack / print preview.');
+}
+
+function downloadPng(){
+  let data = result.width ? result.toDataURL('image/png') : cleanDiagram();
+  if(!data)return;
+  const a=document.createElement('a');
+  a.href=data; a.download='clean-diagram-v91.png'; a.click();
+}
+window.addEventListener('resize',()=>{ if(img) fitPreview(); });
+</script>
+</body>
+</html>
