@@ -1,0 +1,1 @@
+v95 - bigger more sensitive crop sliders
