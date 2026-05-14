@@ -1,1 +1,0 @@
-v93 - diagram tab has exactly two sections: Crop Diagram and Final Diagram
