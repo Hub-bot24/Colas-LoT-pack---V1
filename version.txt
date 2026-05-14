@@ -1,0 +1,1 @@
+v85 - slider crop diagram cleaner; no pinch zoom crop reset
