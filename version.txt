@@ -1,1 +1,0 @@
-v122 - mobile tab horizontal swipe fixed; page vertical scroll restored
