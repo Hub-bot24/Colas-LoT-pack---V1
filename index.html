@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#1f4e79" />
+  <title>Spray Seal Design Calculation</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header no-print">
+    <div>
+      <p class="eyebrow">Calculation + Lookups conversion</p>
+      <h1>Spray Seal Design Calculation</h1>
+    </div>
+    <div class="header-actions">
+      <button id="installBtn" class="ghost" hidden>Install</button>
+      <button id="printBtn">Print / PDF</button>
+    </div>
+  </header>
+
+  <main>
+    <form id="designForm">
+      <section class="project-strip sheet-box no-print">
+        <label>Project name<input name="projectName" value="Palen Creek Curve Upgrade" /></label>
+        <label>Road / location<input name="roadName" value="Mount Lindesay Hwy" /></label>
+        <label>Designer<input name="designer" value="Joel Hugo" /></label>
+      </section>
+
+      <section class="traffic-layout">
+        <div class="mini-table source-traffic">
+          <div class="mini-caption">Client traffic conversions</div>
+          <div class="row"><span>AWDT</span><output id="awdtOut">0</output></div>
+          <div class="row"><span>AWEDT</span><output id="awedtOut">0</output></div>
+          <div class="row"><span>AADT Calculated</span><output id="aadtCalcOut">0</output></div>
+        </div>
+
+        <div class="traffic-card sheet-box">
+          <div class="row highlight"><b>Design lane split</b><label class="inline-input"><input name="laneSplit" type="number" step="0.01" value="50" />%</label></div>
+          <div class="row"><span>LV</span><output id="lvOut">0</output></div>
+          <div class="row"><span>SHV</span><output id="shvVehOut">0</output></div>
+          <div class="row"><span>LHV</span><output id="lhvVehOut">0</output></div>
+          <div class="row label-row"><b>v/l/d</b></div>
+          <div class="row"><span></span><output id="vldOut">0</output></div>
+          <div class="row"><span>EHV %</span><output id="ehvOut">0.00%</output></div>
+        </div>
+
+        <div class="year-card sheet-box">
+          <div class="row"><span>Year of Data</span><input name="baseYear" type="number" value="2021" /></div>
+          <div class="row"><span>Year Count</span><output id="yearCountOut">0</output></div>
+          <div class="row"><span>AADT</span><input name="initialAadt" type="number" step="1" value="700" aria-label="Client supplied AADT" /></div>
+          <div class="row"><span>Compound</span><label class="inline-input"><input name="growthRate" type="number" step="0.01" value="2.5" />%</label></div>
+          <div class="big-aadt"><span>DESIGN AADT</span><strong id="designAadtBig">0</strong></div>
+          <div class="breakdown-box">
+            <div class="break-head"><span>BREAKDOWN</span><span>%</span></div>
+            <label><span>LV</span><output id="lvPctOut">100.0%</output></label>
+            <label><span>SHV</span><input name="shvPct" type="number" step="0.01" value="0" /></label>
+            <label><span>LHV</span><input name="lhvPct" type="number" step="0.01" value="0" /></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="design-grid">
+        <article class="design-panel sheet-box" id="designOne">
+          <h2>SPRAY SEAL DESIGN CALCULATION</h2>
+          <div class="calc-table">
+            <div class="r"><span>Design traffic</span><b>v/l/d</b><output id="designTrafficOut">0</output></div>
+            <div class="r"><span>Basic voids factor</span><b>Vf</b><output id="vfOut">0.000</output></div>
+            <div class="section-title">Adjustments:</div>
+            <div class="r"><span>Aggregate shape</span><b>Va</b><output id="vaOut">0</output></div>
+            <div class="r"><span>Traffic effects</span><b>Vt</b><output id="vtOut">0</output></div>
+            <div class="r"><span>Other</span><b></b><output id="otherOut">0</output></div>
+            <div class="r"><span>Design voids factor</span><b>VF</b><output id="designVfOut">0.000</output></div>
+            <div class="r"><span>ALD of aggregate</span><b>ALD mm</b><input name="ald" type="number" step="0.01" value="5.7" /></div>
+            <div class="r"><span>Basic binder rate</span><b>Bb L/m²</b><output id="baseBinderOut">0.00</output></div>
+            <div class="r"><span>Binder factor</span><b>BF</b><output id="bfOut">0.0</output></div>
+            <div class="r"><span>Modified binder rate</span><b>Bbm L/m²</b><output id="modifiedBinderOut">0.00</output></div>
+            <div class="section-title">Allowances:</div>
+            <div class="r"><span>Surface texture / sand patch</span><b>Ast L/m²</b><input name="sandPatch" type="number" step="0.01" value="0.6" /></div>
+            <div class="calc-note-row" data-note-for="sandPatch"></div>
+            <div class="r"><span>Binder Abs. by Agg.</span><b>Aba L/m²</b><input name="aba" type="number" step="0.1" value="0" /></div>
+            <div class="r"><span>Binder Abs. by Pav.</span><b>Ap L/m²</b><input name="ap" type="number" step="0.1" value="0" /></div>
+            <div class="calc-note-row" data-note-for="ap"></div>
+            <div class="r"><span>Embedment</span><b>Ae L/m²</b><input name="ae" type="number" step="0.1" value="0" /></div>
+          </div>
+
+          <div class="input-blocks">
+            <div class="block">
+              <div class="block-head">SPEC</div>
+              <select name="spec" data-options="spec"></select>
+            </div>
+            <div class="block three">
+              <div class="block-head">Existing Surface</div>
+              <label>SURFACE<select name="surfaceType" data-options="surfaceType"></select></label>
+              <label>Texture<input name="surfaceTexture" type="number" step="0.01" value="1.9" /></label>
+              <label>BALLPIN<input name="ballpin" type="number" step="0.01" value="1" /></label>
+            </div>
+            <div class="block three">
+              <div class="block-head">SEAL</div>
+              <label>TYPE<select name="sealType" data-options="sealType"></select></label>
+              <label>TREATMENT<select name="treatment" data-options="treatment"></select></label>
+              <label>BINDER<select name="binder" data-options="binder"></select></label>
+            </div>
+            <div class="block three">
+              <div class="block-head">AGGREGATE</div>
+              <label>mm<select name="aggregateSize" data-options="aggregateSize"></select></label>
+              <label>ALD<input name="aldMirror" type="number" step="0.01" value="5.7" /><small class="field-note" data-note-for="aldMirror"></small></label>
+              <label>FL INDEX %<input name="flIndex" type="number" step="0.01" value="20" /><small class="field-note" data-note-for="flIndex"></small></label>
+            </div>
+            <div class="block three">
+              <div class="block-head">ROAD</div>
+              <label>GRADIENT<select name="gradient"><option>Flat or Downhill</option><option>Slow moving - Climbing Lanes</option></select></label>
+              <label>CHANNELISED<select name="braking"><option>No</option><option>Yes</option></select></label>
+              <label>WIDTH<input name="roadWidth" type="number" step="0.1" value="3" /></label>
+            </div>
+          </div>
+
+          <div class="final-results">
+            <div class="r"><span>Design binder rate</span><b>Bd</b><strong id="finalBinderOut">0.00</strong></div>
+            <div class="r"><span>Aggregate spread rate</span><b>m²/m³</b><strong id="aggSpreadOut">0</strong></div>
+          </div>
+        </article>
+
+        <article class="design-panel sheet-box muted-panel">
+          <h2>SECOND DESIGN / SECOND COAT</h2>
+          <div class="placeholder-copy">
+            <p>This right-hand panel is now reserved to match your Excel layout for the second coat / second treatment.</p>
+            <p class="hard">Next pass: wire this side to its own inputs and outputs instead of pretending one set of fields can cover both.</p>
+          </div>
+          <div class="mini-preview">
+            <div class="r"><span>Design traffic</span><b>v/l/d</b><output id="rightTrafficOut">0</output></div>
+            <div class="r"><span>Basic voids factor</span><b>Vf</b><output id="rightVfOut">0.000</output></div>
+            <div class="r"><span>Design binder rate</span><b>Bd</b><strong>0.00</strong></div>
+            <div class="r"><span>Aggregate spread rate</span><b>m²/m³</b><strong>0</strong></div>
+          </div>
+        </article>
+      </section>
+    </form>
+
+    <section class="flags design-notes sheet-box">
+      <h2>DESIGN NOTES / WARNINGS</h2>
+      <div id="flagsList"></div>
+      <div class="actions no-print">
+        <button id="copyBtn">Copy summary</button>
+        <button id="resetBtn" class="ghost">Reset saved inputs</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="no-print">Built from Calculation + Lookups tabs only. Validate against Excel before real design use.</footer>
+  <script src="app.js" type="module"></script>
+</body>
+</html>
