@@ -164,6 +164,7 @@
         updatedAt:new Date().toISOString(),
         appVersion:CONFIG.APP_VERSION || '',
         summary:lotSummary(),
+        owner:window.LotPackCloud?.getUser?.() ? {id:window.LotPackCloud.getUser().id,email:window.LotPackCloud.getUser().email || ''} : (window.LotPackCloud?.getLastUser?.() || {}),
         snapshot:serializeForm()
       };
       await put(DRAFTS,record);
@@ -200,6 +201,8 @@
       attempts:0,
       lastError:'',
       recipient:CONFIG.DEFAULT_RECIPIENT || '',
+      owner:draft.owner || {},
+      summary:draft.summary || {},
       payload:draft
     };
     await put(SUBMISSIONS,submission);
@@ -217,15 +220,20 @@
   }
 
   async function sendOne(item){
-    if(!CONFIG.SUBMIT_ENDPOINT) throw new Error('Secure submission endpoint has not been configured');
-    const response = await fetch(CONFIG.SUBMIT_ENDPOINT,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(item)
-    });
-    if(!response.ok) throw new Error(`Server returned ${response.status}`);
-    const result = await response.json().catch(()=>({ok:true}));
-    if(result.ok === false) throw new Error(result.error || 'Server rejected submission');
+    let result;
+    if(window.LotPackCloud?.uploadSubmission){
+      result = await window.LotPackCloud.uploadSubmission(item);
+    }else{
+      if(!CONFIG.SUBMIT_ENDPOINT) throw new Error('Secure submission endpoint has not been configured');
+      const response = await fetch(CONFIG.SUBMIT_ENDPOINT,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(item)
+      });
+      if(!response.ok) throw new Error(`Server returned ${response.status}`);
+      result = await response.json().catch(()=>({ok:true}));
+      if(result.ok === false) throw new Error(result.error || 'Server rejected submission');
+    }
     item.status='sent';
     item.sentAt=new Date().toISOString();
     item.serverSubmissionId=result.submissionId || '';
@@ -239,7 +247,7 @@
     const all = await getAll(SUBMISSIONS);
     const pending = all.filter(x=>x.status !== 'sent');
     if(!pending.length){ await updateStatus(); return; }
-    if(!CONFIG.SUBMIT_ENDPOINT){
+    if(!window.LotPackCloud?.uploadSubmission && !CONFIG.SUBMIT_ENDPOINT){
       await updateStatus(`${pending.length} submission saved — server connection not configured yet`);
       return;
     }
@@ -265,7 +273,7 @@
     if(!confirmed) return;
     try{
       await queueSubmission();
-      if(CONFIG.SUBMIT_ENDPOINT && navigator.onLine) alert('Submission saved and upload attempted. The status indicator confirms whether anything remains pending.');
+      if((window.LotPackCloud?.uploadSubmission || CONFIG.SUBMIT_ENDPOINT) && navigator.onLine) alert('Submission saved and secure upload attempted. The status indicator confirms whether anything remains pending.');
       else alert('Submission saved safely on this phone. It will upload automatically after the secure server connection is configured and internet is available.');
     }catch(error){
       console.error('[offline] queue failed',error);
@@ -280,6 +288,7 @@
     document.addEventListener('input',scheduleSave,true);
     document.addEventListener('change',scheduleSave,true);
     window.addEventListener('online',()=>syncPending());
+    window.addEventListener('lotpack-auth-ready',()=>syncPending());
     window.addEventListener('offline',()=>updateStatus());
     window.addEventListener('beforeunload',()=>saveDraft(false));
     setInterval(()=>saveDraft(false),20000);

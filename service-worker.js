@@ -1,4 +1,4 @@
-const CACHE_NAME = 'colas-lotpack-v124';
+const CACHE_NAME = 'colas-lotpack-v125';
 const APP_SHELL = [
   './',
   './index.html',

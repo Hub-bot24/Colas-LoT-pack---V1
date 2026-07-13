@@ -1,23 +1,40 @@
-# COLAS Lot Pack
+# COLAS Lot Pack v125 — Login + Cloud Foundation
 
-Current build: **v124-offline-foundation**
+This version adds:
 
-This build keeps the existing form and print behaviour, and adds the offline foundation:
+- Supabase email/password login
+- Persistent login sessions on the phone
+- Offline IndexedDB draft saving
+- Offline submission queue
+- Automatic upload to Supabase after reception returns
+- Worker ownership recorded against each submission
+- Row Level Security setup SQL
 
-- installable PWA app shell
-- structured IndexedDB autosave on the worker's device
-- persistent pending-submission queue
-- online/reopen/background-sync retry hooks
-- visible online/offline/pending status
+## Required one-time setup
 
-## Still required before live email delivery
+1. In Supabase open **SQL Editor**.
+2. Create a new query.
+3. Paste the complete contents of `supabase-setup.sql`.
+4. Click **Run**.
+5. In **Authentication → Providers → Email**, confirm email/password login is enabled.
+6. Upload every file in this package to the GitHub repository root.
 
-Configure `SUBMIT_ENDPOINT` and `DEFAULT_RECIPIENT` in `app-config.js`, and deploy a secure server endpoint that:
+## Testing
 
-1. authenticates the worker,
-2. validates and stores the lot pack,
-3. generates the controlled PDF,
-4. emails it to the configured work address,
-5. returns a confirmed submission ID.
+1. Open the deployed site online.
+2. Create a test account or sign in.
+3. Complete a small test pack.
+4. Turn off reception and make another change.
+5. Submit while offline.
+6. Restore reception and reopen the app.
+7. In Supabase open **Table Editor → lot_pack_submissions** and confirm the row appears.
 
-Never place email credentials or service secrets in this repository.
+## Not included yet
+
+- PDF generation on the server
+- Automatic email delivery
+- Admin/manager roles
+- Attachments in Supabase Storage
+- Approval dashboard
+
+The browser contains only the publishable key. Never put a Supabase secret key, database password, or email password in this repository.

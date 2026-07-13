@@ -1,11 +1,8 @@
-/*
-  Deployment configuration.
-  SUBMIT_ENDPOINT must be an HTTPS server endpoint that accepts a JSON lot-pack
-  submission and returns JSON containing { ok: true, submissionId: "..." }.
-  Keep secrets on the server. Never put email passwords or API keys here.
-*/
+/* Browser-safe application configuration. Never put a Supabase secret key here. */
 window.LOTPACK_CONFIG = Object.freeze({
+  SUPABASE_URL: "https://kwgbwxsvujpljlchtcwh.supabase.co",
+  SUPABASE_PUBLISHABLE_KEY: "sb_publishable_m-HnhhF78ua35yb6dMoXOQ_qclJp9gm",
   SUBMIT_ENDPOINT: "",
   DEFAULT_RECIPIENT: "",
-  APP_VERSION: "v124-offline-foundation"
+  APP_VERSION: "v125-login-cloud-foundation"
 });
