@@ -1,0 +1,5 @@
+v124-offline-foundation
+- IndexedDB autosave
+- Offline app shell
+- Protected submission queue
+- Automatic retry hooks
