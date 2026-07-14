@@ -1,0 +1,8 @@
+COLAS QA Specification v1.0
+
+1. Stay on branch: v2-enterprise-foundation
+2. Extract this ZIP.
+3. In GitHub choose Add file > Upload files.
+4. Drag the docs folder from the extracted package into the upload area.
+5. Commit with message: Add COLAS QA specification v1.0
+6. Do not create a pull request and do not merge to main.
