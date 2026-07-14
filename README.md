@@ -1,18 +1,29 @@
-# COLAS Lot Pack v126 — Durable Offline Queue
+# COLAS QA — V2 Enterprise Foundation
 
-This release hardens the field workflow for prolonged loss of reception.
+This branch is the protected development foundation for **COLAS QA**.
 
-## Core protections
-- Saves form changes to IndexedDB after input/change/blur and every 15 seconds.
-- Requests persistent browser storage where the device supports it.
-- Stores a locked submission locally before any upload attempt.
-- Never deletes the local submission until Supabase confirms receipt.
-- Retries indefinitely when connectivity/app activity returns, with duplicate protection through the existing client submission ID.
-- Adds Send now, pending-count visibility, storage estimate, emergency backup export, and backup import.
-- Removes the old placeholder alert that blocked secure submission.
+## Current state
 
-## Important operational rule
-No browser can protect data if the user clears website data, deletes the home-screen app, resets/loses the phone, or the operating system removes storage. For critical jobs, use **Export backup** after completion and save the JSON file to the iPhone Files app until the office confirms receipt.
+The existing Lot Pack application remains operational and unchanged at runtime. This foundation commit adds the architecture, security, offline durability, data model, delivery plan, and acceptance-test contracts that all V2 work must follow.
 
-## Deployment
-Upload every file in this folder to the GitHub repository root and replace matching files.
+## Non-negotiable outcome
+
+A completed Lot Pack must remain recoverable on the worker's device during extended periods without reception, must retry safely when connectivity returns, must upload exactly once, and must not be deleted locally until the server confirms durable receipt.
+
+## Documents
+
+1. `docs/01-product-scope.md`
+2. `docs/02-offline-durability-contract.md`
+3. `docs/03-architecture.md`
+4. `docs/04-data-model.md`
+5. `docs/05-security-and-roles.md`
+6. `docs/06-acceptance-tests.md`
+7. `docs/07-delivery-plan.md`
+8. `docs/DECISIONS.md`
+
+## Branch rules
+
+- `main` remains the current production baseline.
+- V2 work is performed only on `v2-enterprise-foundation` until release gates pass.
+- No production merge without passing the offline, sync, security, PDF, email, and audit acceptance tests.
+- No secret or service-role credentials may be committed to this repository.
