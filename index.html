@@ -2528,7 +2528,7 @@ window.addEventListener('beforeprint', forceDiagramIntoPrintFixed);
 </div>
 </div>
 
-<div class="actions"><button class="action" onclick="saveDraft()">Save Draft</button><button class="action" type="button" onclick="previewPrint()">Preview / Print PDF</button><button class="action" type="button" onclick="generateLotPack()">Generate Lot Pack</button><button class="action primary" type="button" onclick="emailSubmitLotPack()">Email / Submit</button></div>
+<div class="actions"><button class="action" onclick="saveDraft()">Save Draft</button><button class="action" type="button" onclick="previewPrint()">Preview / Print PDF</button><button class="action" type="button" onclick="generateLotPack()">Generate Lot Pack</button><button class="action primary" type="button" onclick="submitLotPack()">Submit Securely</button></div>
 </div>
 
 <script>
@@ -2844,24 +2844,7 @@ function previewPrint(){
 </script>
 
 
-<script>
-(function(){
-  function setupEmailFix(){
-    var buttons = Array.prototype.slice.call(document.querySelectorAll("button,.action"));
-    buttons.forEach(function(btn){
-      var t = (btn.textContent || "").toLowerCase();
-      if(t.indexOf("email") !== -1 || t.indexOf("submit") !== -1){
-        btn.onclick = function(e){
-          e.preventDefault();
-          alert("Email sending needs a backend mail service before it can work from GitHub Pages. For now: use Print / Save as PDF, then email the PDF manually.");
-          return false;
-        };
-      }
-    });
-  }
-  document.addEventListener("DOMContentLoaded", setupEmailFix);
-})();
-</script>
+
 
 
 <script>

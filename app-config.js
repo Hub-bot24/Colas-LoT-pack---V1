@@ -4,5 +4,5 @@ window.LOTPACK_CONFIG = Object.freeze({
   SUPABASE_PUBLISHABLE_KEY: "sb_publishable_m-HnhhF78ua35yb6dMoXOQ_qclJp9gm",
   SUBMIT_ENDPOINT: "",
   DEFAULT_RECIPIENT: "",
-  APP_VERSION: "v125-login-cloud-foundation"
+  APP_VERSION: "v126-durable-offline-queue"
 });

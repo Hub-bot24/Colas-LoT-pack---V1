@@ -1,40 +1,18 @@
-# COLAS Lot Pack v125 — Login + Cloud Foundation
+# COLAS Lot Pack v126 — Durable Offline Queue
 
-This version adds:
+This release hardens the field workflow for prolonged loss of reception.
 
-- Supabase email/password login
-- Persistent login sessions on the phone
-- Offline IndexedDB draft saving
-- Offline submission queue
-- Automatic upload to Supabase after reception returns
-- Worker ownership recorded against each submission
-- Row Level Security setup SQL
+## Core protections
+- Saves form changes to IndexedDB after input/change/blur and every 15 seconds.
+- Requests persistent browser storage where the device supports it.
+- Stores a locked submission locally before any upload attempt.
+- Never deletes the local submission until Supabase confirms receipt.
+- Retries indefinitely when connectivity/app activity returns, with duplicate protection through the existing client submission ID.
+- Adds Send now, pending-count visibility, storage estimate, emergency backup export, and backup import.
+- Removes the old placeholder alert that blocked secure submission.
 
-## Required one-time setup
+## Important operational rule
+No browser can protect data if the user clears website data, deletes the home-screen app, resets/loses the phone, or the operating system removes storage. For critical jobs, use **Export backup** after completion and save the JSON file to the iPhone Files app until the office confirms receipt.
 
-1. In Supabase open **SQL Editor**.
-2. Create a new query.
-3. Paste the complete contents of `supabase-setup.sql`.
-4. Click **Run**.
-5. In **Authentication → Providers → Email**, confirm email/password login is enabled.
-6. Upload every file in this package to the GitHub repository root.
-
-## Testing
-
-1. Open the deployed site online.
-2. Create a test account or sign in.
-3. Complete a small test pack.
-4. Turn off reception and make another change.
-5. Submit while offline.
-6. Restore reception and reopen the app.
-7. In Supabase open **Table Editor → lot_pack_submissions** and confirm the row appears.
-
-## Not included yet
-
-- PDF generation on the server
-- Automatic email delivery
-- Admin/manager roles
-- Attachments in Supabase Storage
-- Approval dashboard
-
-The browser contains only the publishable key. Never put a Supabase secret key, database password, or email password in this repository.
+## Deployment
+Upload every file in this folder to the GitHub repository root and replace matching files.
