@@ -14,5 +14,8 @@ This release hardens the field workflow for prolonged loss of reception.
 ## Important operational rule
 No browser can protect data if the user clears website data, deletes the home-screen app, resets/loses the phone, or the operating system removes storage. For critical jobs, use **Export backup** after completion and save the JSON file to the iPhone Files app until the office confirms receipt.
 
+## Email notification on submission
+Submitting a Lot Pack always saves it safely on the phone and uploads it to Supabase once reception returns — see `EMAIL-NOTIFICATIONS-SETUP.md` for the one-time steps to have the office get an automatic email the moment a submission is received.
+
 ## Deployment
 Upload every file in this folder to the GitHub repository root and replace matching files.
