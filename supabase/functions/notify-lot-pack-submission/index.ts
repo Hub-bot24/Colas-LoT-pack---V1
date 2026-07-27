@@ -1,10 +1,10 @@
 // Supabase Edge Function: notify-lot-pack-submission
 //
 // Fired by a Database Webhook on INSERT into public.lot_pack_submissions.
-// Builds a PDF of the full submitted Lot Pack (every field plus signatures
-// and the site diagram) and emails it via Resend to whoever is configured
-// in the NOTIFY_EMAIL_TO secret, then marks the row as emailed so it's
-// never sent twice.
+// Builds a branded PDF of the full submitted Lot Pack (every field plus
+// signatures and the site diagram) and emails it via Resend to whoever is
+// configured in the NOTIFY_EMAIL_TO secret, then marks the row as emailed
+// so it's never sent twice.
 //
 // Required secrets (Project Settings -> Edge Functions -> Secrets):
 //   RESEND_API_KEY   - API key from resend.com
@@ -14,16 +14,25 @@
 // Supabase to every Edge Function; nothing to configure for those.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'npm:pdf-lib@1.17.1';
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from 'npm:pdf-lib@1.17.1';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || '';
 const NOTIFY_EMAIL_TO = Deno.env.get('NOTIFY_EMAIL_TO') || '';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const LOGO_URL = 'https://hub-bot24.github.io/Colas-LoT-pack---V1/colas_logo.png';
 
 const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 40;
+const CONTENT_BOTTOM = 64;
+const BANNER_HEIGHT = 50;
+const TABLE_WIDTH = PAGE_WIDTH - MARGIN * 2;
+const NAVY = rgb(0, 0.19, 0.34);
+const LIGHT_GREY = rgb(0.95, 0.96, 0.97);
+const BORDER_GREY = rgb(0.8, 0.82, 0.86);
+const LABEL_GREY = rgb(0.4, 0.45, 0.5);
+const TEXT_DARK = rgb(0.08, 0.1, 0.14);
 
 function escapeHtml(value: unknown): string {
   return String(value ?? '').replace(/[&<>'"]/g, char => (
@@ -73,87 +82,195 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+let cachedLogoBytes: Uint8Array | null | undefined;
+async function getLogoBytes(): Promise<Uint8Array | null> {
+  if (cachedLogoBytes !== undefined) return cachedLogoBytes;
+  try {
+    const res = await fetch(LOGO_URL);
+    cachedLogoBytes = res.ok ? new Uint8Array(await res.arrayBuffer()) : null;
+  } catch (_error) {
+    cachedLogoBytes = null;
+  }
+  return cachedLogoBytes;
+}
+
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+  const words = String(text || '').split(' ');
+  let line = '';
+  const lines: string[] = [];
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(candidate, size) > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.length ? lines : [''];
+}
+
 async function buildLotPackPdf(record: Record<string, unknown>): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-  let page: PDFPage = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-  let y = PAGE_HEIGHT - MARGIN;
-
-  function newPage() {
-    page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-    y = PAGE_HEIGHT - MARGIN;
+  let logoImage: PDFImage | null = null;
+  const logoBytes = await getLogoBytes();
+  if (logoBytes) {
+    try { logoImage = await pdfDoc.embedPng(logoBytes); } catch (_error) { logoImage = null; }
   }
+
+  let page: PDFPage;
+  let y = 0;
+
+  function drawBanner(target: PDFPage) {
+    target.drawRectangle({ x: 0, y: PAGE_HEIGHT - BANNER_HEIGHT, width: PAGE_WIDTH, height: BANNER_HEIGHT, color: NAVY });
+    let textX = MARGIN;
+    if (logoImage) {
+      const logoHeight = BANNER_HEIGHT - 18;
+      const logoWidth = (logoImage.width / logoImage.height) * logoHeight;
+      target.drawImage(logoImage, { x: MARGIN, y: PAGE_HEIGHT - BANNER_HEIGHT + 9, width: logoWidth, height: logoHeight });
+      textX = MARGIN + logoWidth + 14;
+    }
+    target.drawText('COLAS', { x: textX, y: PAGE_HEIGHT - 22, size: 15, font: boldFont, color: rgb(1, 1, 1) });
+    target.drawText('Lot Pack — Submission Record', { x: textX, y: PAGE_HEIGHT - 37, size: 9, font, color: rgb(0.82, 0.88, 0.94) });
+  }
+
+  function startPage(): PDFPage {
+    const newPageRef = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+    drawBanner(newPageRef);
+    y = PAGE_HEIGHT - BANNER_HEIGHT - 26;
+    return newPageRef;
+  }
+
+  page = startPage();
 
   function ensureSpace(needed: number) {
-    if (y - needed < MARGIN) newPage();
+    if (y - needed < CONTENT_BOTTOM) page = startPage();
   }
 
-  function drawLine(text: string, opts: { size?: number; bold?: boolean; gap?: number } = {}) {
-    const size = opts.size || 11;
-    const useFont: PDFFont = opts.bold ? boldFont : font;
-    const maxWidth = PAGE_WIDTH - MARGIN * 2;
-    const words = text.split(' ');
-    let line = '';
-    const lines: string[] = [];
-    for (const word of words) {
-      const candidate = line ? `${line} ${word}` : word;
-      if (useFont.widthOfTextAtSize(candidate, size) > maxWidth && line) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = candidate;
-      }
-    }
-    if (line) lines.push(line);
-    for (const l of lines) {
-      ensureSpace(size + 6);
-      page.drawText(l, { x: MARGIN, y, size, font: useFont, color: rgb(0, 0, 0) });
-      y -= size + 6;
-    }
-    y -= opts.gap || 0;
+  function sectionHeading(text: string) {
+    ensureSpace(30);
+    page.drawRectangle({ x: MARGIN, y: y - 20, width: TABLE_WIDTH, height: 22, color: LIGHT_GREY, borderColor: BORDER_GREY, borderWidth: 0.75 });
+    page.drawText(text, { x: MARGIN + 8, y: y - 14, size: 11, font: boldFont, color: NAVY });
+    y -= 32;
+  }
+
+  function drawKeyFactsCard(pairs: [string, string][]) {
+    const boxPaddingX = 12;
+    const boxPaddingY = 12;
+    const colWidth = TABLE_WIDTH / 2;
+    const rows = Math.ceil(pairs.length / 2);
+    const rowHeight = 30;
+    const boxHeight = rows * rowHeight + boxPaddingY * 2;
+    ensureSpace(boxHeight + 10);
+    const boxTop = y;
+    page.drawRectangle({ x: MARGIN, y: boxTop - boxHeight, width: TABLE_WIDTH, height: boxHeight, color: LIGHT_GREY, borderColor: BORDER_GREY, borderWidth: 1 });
+    pairs.forEach(([label, rawValue], i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const x = MARGIN + boxPaddingX + col * colWidth;
+      const rowY = boxTop - boxPaddingY - 12 - row * rowHeight;
+      let value = rawValue || 'N/A';
+      if (value.length > 42) value = `${value.slice(0, 41)}…`;
+      page.drawText(label.toUpperCase(), { x, y: rowY, size: 7, font: boldFont, color: LABEL_GREY });
+      page.drawText(value, { x, y: rowY - 13, size: 10.5, font, color: TEXT_DARK });
+    });
+    y = boxTop - boxHeight - 18;
+  }
+
+  const LABEL_COL_WIDTH = 170;
+  const VALUE_COL_WIDTH = TABLE_WIDTH - LABEL_COL_WIDTH;
+  const ROW_PADDING = 6;
+  const ROW_LINE_HEIGHT = 11;
+
+  function drawTableRow(label: string, value: string, shade: boolean) {
+    const labelLines = wrapText(label, boldFont, 8.5, LABEL_COL_WIDTH - ROW_PADDING * 2);
+    const valueLines = wrapText(value, font, 8.5, VALUE_COL_WIDTH - ROW_PADDING * 2);
+    const lineCount = Math.max(labelLines.length, valueLines.length);
+    const rowHeight = lineCount * ROW_LINE_HEIGHT + ROW_PADDING * 2;
+    ensureSpace(rowHeight);
+    const rowTop = y;
+    page.drawRectangle({
+      x: MARGIN, y: rowTop - rowHeight, width: TABLE_WIDTH, height: rowHeight,
+      color: shade ? LIGHT_GREY : rgb(1, 1, 1), borderColor: BORDER_GREY, borderWidth: 0.75
+    });
+    page.drawLine({
+      start: { x: MARGIN + LABEL_COL_WIDTH, y: rowTop }, end: { x: MARGIN + LABEL_COL_WIDTH, y: rowTop - rowHeight },
+      thickness: 0.75, color: BORDER_GREY
+    });
+    labelLines.forEach((line, i) => page.drawText(line, {
+      x: MARGIN + ROW_PADDING, y: rowTop - ROW_PADDING - 9 - i * ROW_LINE_HEIGHT, size: 8.5, font: boldFont, color: NAVY
+    }));
+    valueLines.forEach((line, i) => page.drawText(line, {
+      x: MARGIN + LABEL_COL_WIDTH + ROW_PADDING, y: rowTop - ROW_PADDING - 9 - i * ROW_LINE_HEIGHT, size: 8.5, font, color: TEXT_DARK
+    }));
+    y = rowTop - rowHeight;
   }
 
   const summary = (record.summary || {}) as Record<string, unknown>;
-  drawLine('COLAS Lot Pack Submission', { size: 18, bold: true, gap: 8 });
-  drawLine(`Lot No: ${summary.lotNo || 'N/A'}`, { bold: true });
-  drawLine(`Customer: ${summary.customer || 'N/A'}`);
-  drawLine(`Job No: ${summary.jobNo || 'N/A'}`);
-  drawLine(`Site Location: ${summary.siteLocation || 'N/A'}`);
-  drawLine(`Work Date: ${summary.workDate || 'N/A'}`);
-  drawLine(`Submitted By: ${summary.worker || 'N/A'}`);
-  drawLine(`Received At: ${(record.received_at as string) || ''}`, { gap: 14 });
+  const str = (v: unknown) => (v ? String(v) : '');
+  drawKeyFactsCard([
+    ['Lot No', str(summary.lotNo)],
+    ['Customer', str(summary.customer)],
+    ['Job No', str(summary.jobNo)],
+    ['Site Location', str(summary.siteLocation)],
+    ['Work Date', str(summary.workDate)],
+    ['Submitted By', str(summary.worker)],
+    ['Received At', str(record.received_at)],
+    ['Submission ID', str(record.id)]
+  ]);
 
-  drawLine('Full Form Details', { size: 14, bold: true, gap: 6 });
   const payload = (record.payload || {}) as Record<string, unknown>;
   const snapshot = (payload.snapshot || {}) as Record<string, unknown>;
   const fields = (snapshot.fields || {}) as Record<string, unknown>;
-  for (const [key, data] of Object.entries(fields)) {
-    const value = fieldDisplayValue(data);
-    if (!value) continue;
-    drawLine(`${humanizeKey(key)}: ${value}`);
+  const fieldEntries = Object.entries(fields)
+    .map(([key, data]) => [key, fieldDisplayValue(data)] as [string, string])
+    .filter(([, value]) => Boolean(value));
+
+  if (fieldEntries.length) {
+    sectionHeading('Full Form Details');
+    fieldEntries.forEach(([key, value], i) => drawTableRow(humanizeKey(key), value, i % 2 === 1));
   }
 
   const canvases = (snapshot.canvases || {}) as Record<string, unknown>;
-  for (const [key, dataUrl] of Object.entries(canvases)) {
-    if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image')) continue;
-    let image;
-    try {
-      image = await pdfDoc.embedPng(dataUrlToBytes(dataUrl));
-    } catch (_error) {
-      continue;
+  const imageEntries = Object.entries(canvases).filter(
+    ([, dataUrl]) => typeof dataUrl === 'string' && (dataUrl as string).startsWith('data:image')
+  ) as [string, string][];
+
+  if (imageEntries.length) {
+    sectionHeading('Signatures & Site Diagram');
+    for (const [key, dataUrl] of imageEntries) {
+      let image;
+      try {
+        image = await pdfDoc.embedPng(dataUrlToBytes(dataUrl));
+      } catch (_error) {
+        continue;
+      }
+      const maxWidth = TABLE_WIDTH - 16;
+      const scale = Math.min(1, maxWidth / image.width);
+      const width = image.width * scale;
+      const height = image.height * scale;
+      const frameHeight = height + 34;
+      ensureSpace(frameHeight);
+      const frameTop = y;
+      page.drawRectangle({ x: MARGIN, y: frameTop - frameHeight, width: TABLE_WIDTH, height: frameHeight, color: rgb(1, 1, 1), borderColor: BORDER_GREY, borderWidth: 0.75 });
+      page.drawText(humanizeKey(key), { x: MARGIN + 8, y: frameTop - 16, size: 9.5, font: boldFont, color: NAVY });
+      page.drawImage(image, { x: MARGIN + 8, y: frameTop - frameHeight + 10, width, height });
+      y = frameTop - frameHeight - 14;
     }
-    const maxWidth = PAGE_WIDTH - MARGIN * 2;
-    const scale = Math.min(1, maxWidth / image.width);
-    const width = image.width * scale;
-    const height = image.height * scale;
-    ensureSpace(height + 30);
-    drawLine(humanizeKey(key), { bold: true, gap: 4 });
-    ensureSpace(height);
-    page.drawImage(image, { x: MARGIN, y: y - height, width, height });
-    y -= height + 16;
   }
+
+  const totalPages = pdfDoc.getPageCount();
+  pdfDoc.getPages().forEach((p, idx) => {
+    p.drawLine({ start: { x: MARGIN, y: CONTENT_BOTTOM - 20 }, end: { x: PAGE_WIDTH - MARGIN, y: CONTENT_BOTTOM - 20 }, thickness: 0.5, color: BORDER_GREY });
+    p.drawText(`COLAS Lot Pack  |  Submission ID: ${String(record.id)}`, { x: MARGIN, y: CONTENT_BOTTOM - 32, size: 7, font, color: LABEL_GREY });
+    const pageLabel = `Page ${idx + 1} of ${totalPages}`;
+    const pageLabelWidth = font.widthOfTextAtSize(pageLabel, 7);
+    p.drawText(pageLabel, { x: PAGE_WIDTH - MARGIN - pageLabelWidth, y: CONTENT_BOTTOM - 32, size: 7, font, color: LABEL_GREY });
+  });
 
   return await pdfDoc.save();
 }
