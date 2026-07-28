@@ -40,8 +40,8 @@ body{font-family:Arial;margin:0;background:#eef1f5;color:#111}.app{max-width:120
   .print-lot{font-size:17px;font-weight:900;margin:10px 0 12px 0}
   .print-section{background:#00447c!important;color:#fff!important;font-weight:bold;padding:6px 8px;margin-top:0px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .print-table{width:100%;border-collapse:collapse;font-size:12px;margin:0}
-  .print-table th,.print-table td{border:1px solid #555;padding:6px;text-align:left;vertical-align:top}
-  .print-table th{background:#e8eef6!important;font-weight:bold;width:18%;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .print-table th,.print-table td{border:1px solid #b9cbe0;padding:6px;text-align:left;vertical-align:top}
+  .print-table th{background:#e8eef6!important;color:#00447c!important;font-weight:bold;width:18%;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .print-table.small th,.print-table.small td{text-align:center;padding:5px;font-size:11px}
   .print-checkgrid{display:grid;grid-template-columns:repeat(4,1fr);border-left:1px solid #555;border-top:1px solid #555;font-size:12px}
   .print-checkgrid div{border-right:1px solid #555;border-bottom:1px solid #555;padding:8px}
@@ -1124,7 +1124,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:1
   }
 
   .v33-logo{position:absolute!important;left:0!important;top:0!important;width:96px!important;height:38px!important;}
-  .v33-logo:before{content:""!important;position:absolute!important;left:0!important;top:5px!important;width:92px!important;height:30px!important;background:#ffe100!important;clip-path:polygon(0 50%,28% 0,100% 50%,28% 100%)!important;}
+  .v33-logo:before{content:""!important;position:absolute!important;left:0!important;top:5px!important;width:92px!important;height:30px!important;background:#ffe600!important;clip-path:polygon(0 50%,28% 0,100% 50%,28% 100%)!important;}
   .v33-logo span{position:absolute!important;left:18px!important;top:11px!important;font-weight:900!important;font-size:17px!important;color:#111!important;}
   .v33-topline{position:absolute!important;left:0!important;right:0!important;top:15mm!important;border-top:2px solid #111!important;}
 
@@ -1141,7 +1141,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:1
 
   .v33-title{
     height:28px!important;
-    background:#2f70b5!important;
+    background:#00447c!important;
     color:white!important;
     text-align:center!important;
     font-weight:700!important;
@@ -1673,43 +1673,44 @@ canvas,
 <meta name="theme-color" content="#00447c">
 <script src="app-config.js"></script>
 <style id="COLAS_PDF_LAYOUT_MATCH">
-.pdfcov-box{border:1.6px solid #111;padding:12px 16px 14px 16px;margin-bottom:12px;position:relative;min-height:110px}
+.pdfcov-box{border:1.8px solid #00447c;padding:12px 16px 14px 16px;margin-bottom:12px;position:relative;min-height:110px;background:linear-gradient(180deg,#f5f9fd 0,#f5f9fd 44px,#fff 44px)}
 .pdfcov-box-logo{position:absolute;top:10px;right:14px;width:130px;height:auto}
-.pdfcov-box-sub{position:absolute;top:46px;right:14px;width:230px;text-align:right;font-size:8.5px;line-height:1.3;color:#111}
-.pdfcov-box-title{font-size:15px;font-weight:700;margin-bottom:10px}
+.pdfcov-box-sub{position:absolute;top:46px;right:14px;width:230px;text-align:right;font-size:8.5px;line-height:1.3;color:#00447c}
+.pdfcov-box-title{font-size:15px;font-weight:700;margin-bottom:10px;color:#00447c}
 .pdfcov-box-row{font-size:13px;margin:7px 0}
-.pdfcov-box-row .label{display:inline-block;min-width:58px}
+.pdfcov-box-row .label{display:inline-block;min-width:58px;color:#00447c}
 .pdfcov-lotno{font-size:14px}
 .pdfcov-fields{margin:10px 0}
 .pdfcov-fields div{font-size:12.5px;margin:6px 0}
-.pdfcov-fields b{display:inline-block;min-width:140px}
-.pdfcov-dash{border-top:1px dashed #444;margin:8px 0}
+.pdfcov-fields b{display:inline-block;min-width:140px;color:#00447c}
+.pdfcov-dash{border-top:1.4px solid #ffe600;margin:8px 0}
 .pdfcov-cols{display:grid;grid-template-columns:1fr 1fr;gap:2px 24px;margin:10px 0}
 .pdfcov-cols div{font-size:12.5px;margin:5px 0}
-.pdfcov-cols b{display:inline-block;min-width:100px}
+.pdfcov-cols b{display:inline-block;min-width:100px;color:#00447c}
 .pdfcov-checks{display:grid;grid-template-columns:1fr 1fr;gap:6px 30px;margin:12px 0 4px 0}
 .pdfcov-checkrow{display:flex;align-items:center;gap:8px;font-size:12.5px}
-.pdfcov-checkbox{width:15px;height:15px;border:1.3px solid #111;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;line-height:1}
+.pdfcov-checkbox{width:15px;height:15px;border:1.4px solid #00447c;border-radius:2px;color:#00447c;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;line-height:1}
 .pdfcov-notes{margin-top:14px}
-.pdfcov-notes b{font-size:14px}
-.pdfcov-notes-text{border-bottom:1px solid #111;min-height:20px;margin:14px 30px 0 30px;font-size:12px;padding-bottom:2px;white-space:pre-wrap}
-.pdfcov-footer{display:flex;justify-content:space-between;font-size:9px;color:#333;margin-top:20px}
+.pdfcov-notes b{font-size:14px;color:#00447c}
+.pdfcov-notes-text{border-bottom:1px solid #00447c;min-height:20px;margin:14px 30px 0 30px;font-size:12px;padding-bottom:2px;white-space:pre-wrap}
+.pdfcov-footer{display:flex;justify-content:space-between;font-size:9px;color:#333;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:5px}
 .pdfcov-page{display:flex;flex-direction:column;page-break-after:always;break-after:page}
 .pdfcov-page .pdfcov-footer{margin-top:auto;padding-top:20px}
 .pdfchk-page{page-break-before:always;break-before:page}
-.pdfchk-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:8px}
+.pdfchk-header{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2.4px solid #00447c;padding-bottom:6px;margin-bottom:8px}
 .pdfchk-logo{width:130px;height:auto}
 .pdfchk-titleblock{text-align:right}
-.pdfchk-title{font-size:16px;font-weight:700}
-.pdfchk-sub{font-size:10px;margin-top:2px}
+.pdfchk-title{font-size:16px;font-weight:700;color:#00447c}
+.pdfchk-sub{font-size:10px;margin-top:2px;color:#333}
 .pdfchk-fields{display:flex;flex-wrap:wrap;gap:4px 26px;font-size:12px;margin-bottom:8px}
-.pdfchk-fields b{margin-right:4px}
-.pdfchk-footer{display:flex;justify-content:space-between;font-size:8.5px;color:#333;margin-top:10px}
-.pdftest-calc{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;border:1px solid #555;padding:8px 10px;margin-top:8px;font-size:11px}
+.pdfchk-fields b{margin-right:4px;color:#00447c}
+.pdfchk-footer{display:flex;justify-content:space-between;font-size:8.5px;color:#333;margin-top:10px;border-top:1px solid #e2e8f0;padding-top:5px}
+.pdftest-calc{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;border:1.2px solid #00447c;background:#f5f9fd;padding:8px 10px;margin-top:8px;font-size:11px}
+.pdftest-calc b{color:#00447c}
 .pdftest-fine{font-size:9px;color:#333;display:block;margin-top:3px;line-height:1.4}
 .v113-info{width:100%;border-collapse:collapse;font-size:10.5px;margin:0 0 6px 0}
-.v113-info th{background:#e8eef6;border:1px solid #555;padding:4px 6px;text-align:left;width:18%}
-.v113-info td{border:1px solid #555;padding:4px 6px}
+.v113-info th{background:#e8eef6;color:#00447c;border:1px solid #b9cbe0;padding:4px 6px;text-align:left;width:18%}
+.v113-info td{border:1px solid #b9cbe0;padding:4px 6px}
 .included-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px 20px;padding:10px 14px}
 .included-item{display:flex!important;align-items:center;gap:8px;padding:6px 0}
 .included-item input[type="checkbox"]{width:18px!important;height:18px!important;flex:0 0 auto}
@@ -4645,7 +4646,7 @@ async function emailReport(){
 
   .v113-card{
     width:100%!important;
-    border:1.5px solid #222!important;
+    border:1.5px solid #00447c!important;
     margin:0 0 8mm 0!important;
     box-sizing:border-box!important;
     page-break-inside:avoid!important;
@@ -4668,7 +4669,7 @@ async function emailReport(){
     padding:8px 9px!important;
     font-size:10.5px!important;
     line-height:1.35!important;
-    border-bottom:1.2px solid #222!important;
+    border-bottom:1.2px solid #b9cbe0!important;
   }
 
   .v113-table{
@@ -4679,7 +4680,7 @@ async function emailReport(){
   }
 
   .v113-table th,.v113-table td{
-    border:1.2px solid #222!important;
+    border:1.2px solid #b9cbe0!important;
     padding:5px 6px!important;
     vertical-align:middle!important;
     box-sizing:border-box!important;
@@ -4688,6 +4689,7 @@ async function emailReport(){
 
   .v113-table th{
     background:#e8eef6!important;
+    color:#00447c!important;
     font-weight:700!important;
     text-align:center!important;
     -webkit-print-color-adjust:exact!important;
