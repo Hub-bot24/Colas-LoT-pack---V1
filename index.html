@@ -3084,7 +3084,8 @@ async function emailReport(){
     console.log(e);
   }
 
-  await new Promise(function(resolve){ setTimeout(resolve, 400); });
+  try{ window.dispatchEvent(new Event('beforeprint')); }catch(e){ console.log(e); }
+  await new Promise(function(resolve){ setTimeout(resolve, 550); });
 
   var reportNode = document.querySelector('.print-report');
   if(!reportNode){ alert('Report is not ready yet.'); return; }
@@ -3140,8 +3141,8 @@ async function emailReport(){
       return;
     }
   }catch(e){
-    console.log('Share cancelled or failed', e);
-    return;
+    console.log('Share failed, falling back to download', e);
+    if(e && e.name === 'AbortError') return;
   }
 
   var url = URL.createObjectURL(file);
