@@ -65,6 +65,70 @@ function fieldDisplayValue(data: unknown): string {
   return String(entry.value ?? '').trim();
 }
 
+// Keys the app generates for unlabeled inputs (offline-core.js: 'field-' + index).
+// These are unrelated positional placeholders, not repeated measurements, so they
+// must never be grouped into a table even if they happen to end in a number.
+function isFallbackKey(key: string): boolean {
+  return /^field-\d+$/i.test(key);
+}
+
+// Defense in depth: never let a login credential reach an email or PDF, even if
+// an older cached submission (from before the client-side fix) still has one.
+function isSensitiveKey(key: string): boolean {
+  return /password|passcode|lotpackauth/i.test(key);
+}
+
+// Detects "Base N" style labels (e.g. "A 1", "Vol 2") so repeated readings of the
+// same measurement render as one table with a column per reading, not N separate rows.
+function splitBaseIndex(label: string): { base: string; index: string } | null {
+  const match = label.match(/^(.+?)\s+(\d+)$/);
+  if (!match) return null;
+  return { base: match[1].trim(), index: match[2] };
+}
+
+type RenderItem =
+  | { type: 'single'; label: string; value: string }
+  | { type: 'group'; base: string; columns: { index: string; value: string }[] };
+
+function buildRenderItems(fields: Record<string, unknown>): RenderItem[] {
+  const items: RenderItem[] = [];
+  const groupIndexByBase = new Map<string, number>();
+
+  for (const [key, data] of Object.entries(fields)) {
+    const value = fieldDisplayValue(data);
+    if (!value || isSensitiveKey(key)) continue;
+
+    if (isFallbackKey(key)) {
+      items.push({ type: 'single', label: humanizeKey(key), value });
+      continue;
+    }
+
+    const label = humanizeKey(key);
+    const split = splitBaseIndex(label);
+    if (!split) {
+      items.push({ type: 'single', label, value });
+      continue;
+    }
+
+    const existingIdx = groupIndexByBase.get(split.base);
+    if (existingIdx === undefined) {
+      groupIndexByBase.set(split.base, items.length);
+      items.push({ type: 'group', base: split.base, columns: [{ index: split.index, value }] });
+    } else {
+      const existing = items[existingIdx];
+      if (existing.type === 'group') existing.columns.push({ index: split.index, value });
+    }
+  }
+
+  // A "group" of exactly one reading isn't a table, it's just a normal field.
+  return items.map(item => {
+    if (item.type === 'group' && item.columns.length === 1) {
+      return { type: 'single', label: `${item.base} ${item.columns[0].index}`, value: item.columns[0].value } as RenderItem;
+    }
+    return item;
+  });
+}
+
 function dataUrlToBytes(dataUrl: string): Uint8Array {
   const base64 = dataUrl.split(',')[1] || '';
   const binary = atob(base64);
@@ -210,6 +274,36 @@ async function buildLotPackPdf(record: Record<string, unknown>): Promise<Uint8Ar
     y = rowTop - rowHeight;
   }
 
+  function drawGroupTable(base: string, columns: { index: string; value: string }[], shade: boolean) {
+    const sorted = [...columns].sort((a, b) => Number(a.index) - Number(b.index));
+    const groupLabelWidth = LABEL_COL_WIDTH;
+    const colsWidth = TABLE_WIDTH - groupLabelWidth;
+    const colWidth = colsWidth / sorted.length;
+    const headerHeight = 14;
+    const valueHeight = 20;
+    const totalHeight = headerHeight + valueHeight;
+    ensureSpace(totalHeight);
+    const top = y;
+    const bg = shade ? LIGHT_GREY : rgb(1, 1, 1);
+
+    page.drawRectangle({ x: MARGIN, y: top - totalHeight, width: TABLE_WIDTH, height: totalHeight, color: bg, borderColor: BORDER_GREY, borderWidth: 0.75 });
+    page.drawLine({ start: { x: MARGIN + groupLabelWidth, y: top }, end: { x: MARGIN + groupLabelWidth, y: top - totalHeight }, thickness: 0.75, color: BORDER_GREY });
+    page.drawText(base, { x: MARGIN + ROW_PADDING, y: top - totalHeight / 2 - 4, size: 8.5, font: boldFont, color: NAVY });
+
+    sorted.forEach((col, i) => {
+      const x = MARGIN + groupLabelWidth + i * colWidth;
+      if (i > 0) {
+        page.drawLine({ start: { x, y: top }, end: { x, y: top - totalHeight }, thickness: 0.5, color: BORDER_GREY });
+      }
+      page.drawLine({ start: { x, y: top - headerHeight }, end: { x: x + colWidth, y: top - headerHeight }, thickness: 0.5, color: BORDER_GREY });
+      page.drawText(`Test ${col.index}`, { x: x + 4, y: top - headerHeight + 3, size: 6.5, font: boldFont, color: LABEL_GREY });
+      const valueLines = wrapText(col.value, font, 8, colWidth - 8);
+      page.drawText(valueLines[0] || '', { x: x + 4, y: top - headerHeight - 13, size: 8, font, color: TEXT_DARK });
+    });
+
+    y = top - totalHeight;
+  }
+
   const summary = (record.summary || {}) as Record<string, unknown>;
   const str = (v: unknown) => (v ? String(v) : '');
   drawKeyFactsCard([
@@ -226,13 +320,15 @@ async function buildLotPackPdf(record: Record<string, unknown>): Promise<Uint8Ar
   const payload = (record.payload || {}) as Record<string, unknown>;
   const snapshot = (payload.snapshot || {}) as Record<string, unknown>;
   const fields = (snapshot.fields || {}) as Record<string, unknown>;
-  const fieldEntries = Object.entries(fields)
-    .map(([key, data]) => [key, fieldDisplayValue(data)] as [string, string])
-    .filter(([, value]) => Boolean(value));
+  const renderItems = buildRenderItems(fields);
 
-  if (fieldEntries.length) {
+  if (renderItems.length) {
     sectionHeading('Full Form Details');
-    fieldEntries.forEach(([key, value], i) => drawTableRow(humanizeKey(key), value, i % 2 === 1));
+    renderItems.forEach((item, i) => {
+      const shade = i % 2 === 1;
+      if (item.type === 'group') drawGroupTable(item.base, item.columns, shade);
+      else drawTableRow(item.label, item.value, shade);
+    });
   }
 
   const canvases = (snapshot.canvases || {}) as Record<string, unknown>;
