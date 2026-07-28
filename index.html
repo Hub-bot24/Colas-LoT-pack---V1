@@ -78,10 +78,15 @@ body{font-family:Arial;margin:0;background:#eef1f5;color:#111}.app{max-width:120
   .print-table.canvas-print th:nth-child(7),.print-table.canvas-print td:nth-child(7){width:18%}
 
   .print-table.loose-print{table-layout:fixed;width:100%}
-  .print-table.loose-print th:nth-child(1),.print-table.loose-print td:nth-child(1){width:10%}
-  .print-table.loose-print th:nth-child(2),.print-table.loose-print td:nth-child(2){width:32%}
-  .print-table.loose-print th:nth-child(3),.print-table.loose-print td:nth-child(3){width:30%}
-  .print-table.loose-print th:nth-child(4),.print-table.loose-print td:nth-child(4){width:28%}
+  .print-table.loose-print th:nth-child(1),.print-table.loose-print td:nth-child(1){width:40%}
+  .print-table.loose-print th:nth-child(2),.print-table.loose-print td:nth-child(2){width:20%}
+  .print-table.loose-print th:nth-child(3),.print-table.loose-print td:nth-child(3){width:20%}
+  .print-table.loose-print th:nth-child(4),.print-table.loose-print td:nth-child(4){width:20%}
+
+  .print-table.canvas-test-table{table-layout:fixed;width:100%}
+  .print-table.canvas-test-table th:nth-child(1),.print-table.canvas-test-table td:nth-child(1){width:56%}
+  .print-table.canvas-test-table th:nth-child(2),.print-table.canvas-test-table td:nth-child(2){width:22%}
+  .print-table.canvas-test-table th:nth-child(3),.print-table.canvas-test-table td:nth-child(3){width:22%}
 }
 
 
@@ -2122,34 +2127,59 @@ canvas,
       <div class="pdfchk-sub">Form No: Agg-0009A &middot; Canvas Mat Test Method Q711A</div>
     </div>
   </div>
-  <div class="pdfchk-fields" style="font-size:14px;margin-bottom:16px">
+  <div class="pdfchk-fields" style="font-size:13px;margin-bottom:10px">
     <div><b>Project:</b> <span id="pCanvasCustomer"></span></div>
-    <div><b>Job/Contract #:</b> <span id="pCanvasJobNo"></span></div>
-    <div><b>Site Location:</b> <span id="pCanvasSiteLocation"></span></div>
     <div><b>Quarry Source:</b> <span id="pQuarrySource"></span></div>
+    <div><b>Road:</b> <span></span></div>
     <div><b>Aggregate Size:</b> <span id="pAggregateSize"></span></div>
+    <div><b>Job/Contract #:</b> <span id="pCanvasJobNo"></span></div>
+    <div><b>Truck Rego #:</b> <span></span></div>
+    <div><b>Site Location:</b> <span id="pCanvasSiteLocation"></span></div>
+    <div><b>Truck Fleet #:</b> <span></span></div>
   </div>
-  <table class="print-table small canvas-print">
-    <tr><th>Test</th><th>M1</th><th>M2</th><th>A</th><th>R1=(M1-M2)/A</th><th>DL</th><th>R2=1000×DL/R1</th></tr>
-    <tr><td>1</td><td class="pCanvas" data-test="1" data-field="m1"></td><td class="pCanvas" data-test="1" data-field="m2">0.85</td><td class="pCanvas" data-test="1" data-field="a">0.97</td><td class="pCanvas" data-test="1" data-field="r1"></td><td class="pCanvas" data-test="1" data-field="dl">1.45</td><td class="pCanvas" data-test="1" data-field="r2"></td></tr>
-    <tr><td>2</td><td class="pCanvas" data-test="2" data-field="m1"></td><td class="pCanvas" data-test="2" data-field="m2">0.85</td><td class="pCanvas" data-test="2" data-field="a">0.97</td><td class="pCanvas" data-test="2" data-field="r1"></td><td class="pCanvas" data-test="2" data-field="dl">1.45</td><td class="pCanvas" data-test="2" data-field="r2"></td></tr>
-    <tr><td>3</td><td class="pCanvas" data-test="3" data-field="m1"></td><td class="pCanvas" data-test="3" data-field="m2">0.85</td><td class="pCanvas" data-test="3" data-field="a">0.97</td><td class="pCanvas" data-test="3" data-field="r1"></td><td class="pCanvas" data-test="3" data-field="dl">1.45</td><td class="pCanvas" data-test="3" data-field="r2"></td></tr>
+  <div class="v113-title" style="margin-top:18px">Test 1 &mdash; Field Spread Rate (Test Method Q711A)</div>
+  <table class="print-table small canvas-test-table">
+    <tr><th></th><th>Canvas Mat - 1</th><th>Canvas Mat - 2</th></tr>
+    <tr><td class="left">Mass Canvas Mat &amp; Aggregate (M1)</td><td class="pCanvas" data-test="1" data-field="m1"></td><td></td></tr>
+    <tr><td class="left">Mass Canvas Mat (M2)</td><td class="pCanvas" data-test="1" data-field="m2"></td><td></td></tr>
+    <tr><td class="left">Area of Canvas Mat (A)</td><td class="pCanvas" data-test="1" data-field="a"></td><td></td></tr>
+    <tr><td class="left">Spread Rate (Kg/m&sup2;) R1=(M1-M2)/A</td><td class="pCanvas" data-test="1" data-field="r1"></td><td></td></tr>
+    <tr><td class="left">Loose Unit Mass of Screenings (DL)</td><td class="pCanvas" data-test="1" data-field="dl"></td><td class="left" style="font-size:9px">Perform Test? &#9744;</td></tr>
+    <tr><td class="left">Spread Rate (m&sup2;/m&sup3;) R2=1000&times;DL/R1</td><td class="pCanvas" data-test="1" data-field="r2"></td><td></td></tr>
+  </table>
+  <div class="v113-title" style="margin-top:14px">Test 2 &mdash; Field Spread Rate (Test Method Q711A)</div>
+  <table class="print-table small canvas-test-table">
+    <tr><th></th><th>Canvas Mat - 1</th><th>Canvas Mat - 2</th></tr>
+    <tr><td class="left">Mass Canvas Mat &amp; Aggregate (M1)</td><td class="pCanvas" data-test="2" data-field="m1"></td><td></td></tr>
+    <tr><td class="left">Mass Canvas Mat (M2)</td><td class="pCanvas" data-test="2" data-field="m2"></td><td></td></tr>
+    <tr><td class="left">Area of Canvas Mat (A)</td><td class="pCanvas" data-test="2" data-field="a"></td><td></td></tr>
+    <tr><td class="left">Spread Rate (Kg/m&sup2;) R1=(M1-M2)/A</td><td class="pCanvas" data-test="2" data-field="r1"></td><td></td></tr>
+    <tr><td class="left">Loose Unit Mass of Screenings (DL)</td><td class="pCanvas" data-test="2" data-field="dl"></td><td class="left" style="font-size:9px">Perform Test? &#9744;</td></tr>
+    <tr><td class="left">Spread Rate (m&sup2;/m&sup3;) R2=1000&times;DL/R1</td><td class="pCanvas" data-test="2" data-field="r2"></td><td></td></tr>
+  </table>
+  <div class="v113-title" style="margin-top:14px">Test 3 &mdash; Field Spread Rate (Test Method Q711A)</div>
+  <table class="print-table small canvas-test-table">
+    <tr><th></th><th>Canvas Mat - 1</th><th>Canvas Mat - 2</th></tr>
+    <tr><td class="left">Mass Canvas Mat &amp; Aggregate (M1)</td><td class="pCanvas" data-test="3" data-field="m1"></td><td></td></tr>
+    <tr><td class="left">Mass Canvas Mat (M2)</td><td class="pCanvas" data-test="3" data-field="m2"></td><td></td></tr>
+    <tr><td class="left">Area of Canvas Mat (A)</td><td class="pCanvas" data-test="3" data-field="a"></td><td></td></tr>
+    <tr><td class="left">Spread Rate (Kg/m&sup2;) R1=(M1-M2)/A</td><td class="pCanvas" data-test="3" data-field="r1"></td><td></td></tr>
+    <tr><td class="left">Loose Unit Mass of Screenings (DL)</td><td class="pCanvas" data-test="3" data-field="dl"></td><td class="left" style="font-size:9px">Perform Test? &#9744;</td></tr>
+    <tr><td class="left">Spread Rate (m&sup2;/m&sup3;) R2=1000&times;DL/R1</td><td class="pCanvas" data-test="3" data-field="r2"></td><td></td></tr>
   </table>
 
-  <div class="print-section" style="margin-top:26px">Loose Unit Mass - Q221A</div>
+  <div class="v113-title" style="margin-top:16px">Loose Unit Mass (Test Method Q221A)</div>
   <table class="print-table small loose-print">
-    <tr><th>Test</th><th>M3 Mass Loose Aggregate (kg)</th><th>Volume of Container (L)</th><th>DL = M3/Vol</th></tr>
-    <tr><td>1</td><td class="pLoose" data-test="1" data-field="m3"></td><td class="pLoose" data-test="1" data-field="vol">16.25</td><td class="pLoose" data-test="1" data-field="dl"></td></tr>
-    <tr><td>2</td><td class="pLoose" data-test="2" data-field="m3"></td><td class="pLoose" data-test="2" data-field="vol">16.25</td><td class="pLoose" data-test="2" data-field="dl"></td></tr>
-    <tr><td>3</td><td class="pLoose" data-test="3" data-field="m3"></td><td class="pLoose" data-test="3" data-field="vol">16.25</td><td class="pLoose" data-test="3" data-field="dl"></td></tr>
+    <tr><th></th><th>Test 1</th><th>Test 2</th><th>Test 3</th></tr>
+    <tr><td class="left">Mass of Loose Aggregate (kg) - M3</td><td class="pLoose" data-test="1" data-field="m3"></td><td class="pLoose" data-test="2" data-field="m3"></td><td class="pLoose" data-test="3" data-field="m3"></td></tr>
+    <tr><td class="left">Volume of Container (L) - Vol</td><td class="pLoose" data-test="1" data-field="vol"></td><td class="pLoose" data-test="2" data-field="vol"></td><td class="pLoose" data-test="3" data-field="vol"></td></tr>
+    <tr><td class="left">Loose Unit Mass - DL = M3/Vol</td><td class="pLoose" data-test="1" data-field="dl"></td><td class="pLoose" data-test="2" data-field="dl"></td><td class="pLoose" data-test="3" data-field="dl"></td></tr>
   </table>
-  <div class="pdftest-calc" style="grid-template-columns:1fr;margin-top:34px">
-    <div class="pdftest-calc-col">
-      <b>Variation to Test Method: Remarks</b>
-      <div style="min-height:170px"></div>
-    </div>
-  </div>
-  <div class="pdfchk-fields" style="margin-top:26px;font-size:14px">
+
+  <div class="v113-title" style="margin-top:16px">Variation to Test Method: Remarks</div>
+  <div style="border:1.2px solid #b9cbe0;border-top:none;min-height:60px"></div>
+
+  <div class="pdfchk-fields" style="margin-top:18px;font-size:13px">
     <div><b>Tested By:</b> <span id="pCanvasTestedBy"></span></div>
     <div><b>Date:</b> <span id="pCanvasTestDate"></span></div>
   </div>
@@ -4156,6 +4186,18 @@ async function emailReport(){
   window.previewPrint = function(){
     try{ if(typeof syncSiteDiagramFromCover === 'function') syncSiteDiagramFromCover(); }catch(e){}
     try{ if(typeof window.v33FillSiteDiagramPrintPage === 'function') window.v33FillSiteDiagramPrintPage(); }catch(e){}
+    try{ if(typeof syncIncludedPrint === 'function') syncIncludedPrint(); }catch(e){}
+    try{ if(typeof syncMixPrint === 'function') syncMixPrint(); }catch(e){}
+    try{ if(typeof syncQaConfirmPrint === 'function') syncQaConfirmPrint(); }catch(e){}
+    try{ if(typeof syncLotCoverPrint === 'function') syncLotCoverPrint(); }catch(e){}
+    try{ if(typeof syncCanvasFieldsPrint === 'function') syncCanvasFieldsPrint(); }catch(e){}
+    try{
+      for(let i=1;i<=12;i++){ if(typeof syncPrintBall === 'function') syncPrintBall(i); }
+      for(let i=1;i<=3;i++){
+        if(typeof syncPrintCanvas === 'function') syncPrintCanvas(i);
+        if(typeof syncPrintLoose === 'function') syncPrintLoose(i);
+      }
+    }catch(e){}
     syncPrintDiagramV101();
     setTimeout(syncPrintDiagramV101, 100);
     setTimeout(function(){ window.print(); }, 250);
@@ -4822,6 +4864,18 @@ async function emailReport(){
     try{ if(typeof updateLotNo==='function') updateLotNo(); }catch(e){}
     try{ if(typeof syncPrintDiagramV101==='function') syncPrintDiagramV101(); }catch(e){}
     try{ if(typeof window.v33FillSiteDiagramPrintPage==='function') window.v33FillSiteDiagramPrintPage(); }catch(e){}
+    try{ if(typeof syncIncludedPrint==='function') syncIncludedPrint(); }catch(e){}
+    try{ if(typeof syncMixPrint==='function') syncMixPrint(); }catch(e){}
+    try{ if(typeof syncQaConfirmPrint==='function') syncQaConfirmPrint(); }catch(e){}
+    try{ if(typeof syncLotCoverPrint==='function') syncLotCoverPrint(); }catch(e){}
+    try{ if(typeof syncCanvasFieldsPrint==='function') syncCanvasFieldsPrint(); }catch(e){}
+    try{
+      for(let i=1;i<=12;i++){ if(typeof syncPrintBall==='function') syncPrintBall(i); }
+      for(let i=1;i<=3;i++){
+        if(typeof syncPrintCanvas==='function') syncPrintCanvas(i);
+        if(typeof syncPrintLoose==='function') syncPrintLoose(i);
+      }
+    }catch(e){}
     syncV113();
     setTimeout(function(){syncV113(); window.print();},250);
   };
