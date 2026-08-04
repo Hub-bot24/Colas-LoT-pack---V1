@@ -3410,21 +3410,11 @@ async function emailReport(){
 </script>
 
 
+<script src="compass-options-data.js"></script>
 <script>
 /* ===== v19 REAL FIX JS ===== */
 (function(){
   function $(id){return document.getElementById(id);}
-  const compassOptions = [
-    ["blank","Blank box"],
-    ["up","Up / N"],
-    ["up-right","Up Right / NE"],
-    ["right","Right / E"],
-    ["down-right","Down Right / SE"],
-    ["down","Down / S"],
-    ["down-left","Down Left / SW"],
-    ["left","Left / W"],
-    ["up-left","Up Left / NW"]
-  ];
 
   function forceCompassDropdown(){
     var sel = $("sd_northSel");

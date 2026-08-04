@@ -1,7 +1,7 @@
 const CACHE_NAME = 'colas-lotpack-v126-durable-offline';
 const APP_SHELL = [
   './','./index.html','./site-diagram-print.html','./colas_logo.png','./manifest.webmanifest',
-  './app-config.js','./qvc-checklist-data.js','./cloud-core.js','./offline-core.js','./version.txt'
+  './app-config.js','./qvc-checklist-data.js','./compass-options-data.js','./cloud-core.js','./offline-core.js','./version.txt'
 ];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
