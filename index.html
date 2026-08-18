@@ -4394,7 +4394,10 @@ async function emailReport(){
 (function(){
   function byId(id){return document.getElementById(id);}
   function repairSignatureBlock(){
-    var canvases=[].slice.call(document.querySelectorAll('#sign canvas.signatureCanvas, canvas.signatureCanvas'));
+    // Scoped to #sign only: the old unscoped fallback matched the memo canvases
+    // first in document order and renamed them, creating duplicate IDs that
+    // broke signature save/restore for the Sign Off canvases.
+    var canvases=[].slice.call(document.querySelectorAll('#sign canvas.signatureCanvas'));
     if(canvases[0]) canvases[0].id='colasSigCanvas';
     if(canvases[1]) canvases[1].id='clientSigCanvas';
 
@@ -4575,6 +4578,11 @@ async function emailReport(){
       var ratio = window.devicePixelRatio || 1;
       var old = null;
 
+      /* Canvas on a hidden tab measures 0x0; resizing then would clamp the
+         backing store and redraw the ink into a zero-size area, erasing a
+         restored signature. Wait until the canvas is actually visible. */
+      if(!rect.width || !rect.height) return;
+
       try{
         if(canvas.width && canvas.height){
           old = document.createElement('canvas');
@@ -4679,11 +4687,13 @@ async function emailReport(){
   }
 
   function init(){
-    // Fix duplicate IDs from old builds.
-    var canvases=[].slice.call(document.querySelectorAll('#sign canvas.signatureCanvas, canvas.signatureCanvas'));
-    if(canvases[0]) canvases[0].id='colasSigCanvas';
-    if(canvases[1]) canvases[1].id='clientSigCanvas';
+    // Fix duplicate IDs from old builds. Scoped to #sign only: the old
+    // unscoped selector renamed the memo canvases and broke save/restore.
+    var signCanvases=[].slice.call(document.querySelectorAll('#sign canvas.signatureCanvas'));
+    if(signCanvases[0]) signCanvases[0].id='colasSigCanvas';
+    if(signCanvases[1]) signCanvases[1].id='clientSigCanvas';
 
+    var canvases=[].slice.call(document.querySelectorAll('canvas.signatureCanvas'));
     canvases.forEach(setupCanvas);
   }
 
@@ -5790,17 +5800,21 @@ canvas.signatureCanvas{
     padding:8px 4px!important;
     line-height:1.1!important;
   }
+}
 
-  /* Account + save-state strip: sits in normal flow directly beneath the
-     sticky tab row and sticks with it, so the controls reserve layout space
-     instead of floating over form fields at the bottom corners. */
+/* Account + save-state strip: sits in normal flow directly beneath the
+   sticky tab row and sticks with it, so the controls reserve layout space
+   instead of floating over form fields at the bottom corners. No upper
+   width bound: wide tablets (iPad Air/Pro landscape report 1180-1366px)
+   and desktop must get the strip too, not the old floating pills. */
+@media screen and (min-width:951px){
   #appStatusStrip{
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:10px;
-    padding:4px 10px;
-    min-height:34px;
+    padding:3px 10px;
+    min-height:32px;
     box-sizing:border-box;
     background:#f1f4f8;
     border-bottom:1px solid #cbd5e1;
@@ -5819,31 +5833,74 @@ canvas.signatureCanvas{
     box-shadow:none!important;
     max-width:48%!important;
     z-index:auto!important;
+    padding:4px 12px!important;
+    font-size:12.5px!important;
+    line-height:1.3!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
   }
   #appStatusStrip #lotpackUserBar{
     border:1px solid #cbd5e1;
     background:#fff;
+    color:#003057;
   }
   #appStatusStrip #offlineSaveStatus{
     cursor:pointer;
+    background:#003057!important;
+    color:#fff!important;
+  }
+  /* The global touch rule (button{min-height:46px}) would inflate the strip;
+     keep its controls compact without affecting buttons elsewhere. */
+  #appStatusStrip #offlineSaveStatus,
+  #appStatusStrip #lotpackUserBar button{
+    min-height:0!important;
+    height:auto!important;
+  }
+  #appStatusStrip #lotpackUserBar button{
+    padding:2px 6px!important;
+    font-size:12.5px!important;
   }
 
   /* Safety panel opens under the strip instead of over the lower form. */
   #offlineSafetyPanel{
-    top:92px!important;
+    top:82px!important;
     bottom:auto!important;
     right:12px!important;
   }
 
-  /* Signatures: the fixed-width canvas + Clear button overflowed the grid
-     track at this width; let the canvas flex down beside its tools. */
+  /* Final Review / Sign Off: full-width canvas with its Clear button as a
+     secondary control on its own row underneath, instead of squeezed
+     beside the canvas. COLAS and Client columns stay side by side. */
   #sign .grid{
     min-width:0!important;
   }
+  #sign .cell{
+    flex-wrap:wrap!important;
+  }
   #sign canvas.signatureCanvas{
-    width:auto!important;
-    flex:1 1 200px!important;
+    flex:1 1 100%!important;
+    width:100%!important;
+    max-width:none!important;
     min-width:0!important;
+  }
+  #sign .sig-tools{
+    flex:0 0 100%!important;
+    margin:6px 0 0 0!important;
+    justify-content:flex-start!important;
+  }
+  #sign .sig-tools button{
+    height:40px!important;
+    min-height:40px!important;
+    min-width:150px!important;
+    padding:8px 14px!important;
+    font-size:13px!important;
+    font-weight:600!important;
+    background:#eef2f7!important;
+    color:#00447c!important;
+    border:1px solid #9fb3c8!important;
+    border-radius:6px!important;
+    white-space:nowrap!important;
   }
   #sign .cell.label{
     white-space:normal!important;

@@ -190,11 +190,14 @@
   async function updateStatus(message){
     const bar = document.getElementById('offlineSaveStatus');
     if(!bar) return;
-    const pending = (await pendingItems().catch(()=>[])).length;
+    const pendingList = await pendingItems().catch(()=>[]);
+    const pending = pendingList.length;
+    const retrying = pendingList.some(item => item.lastError);
     if(message) bar.textContent = message;
-    else if(!navigator.onLine) bar.textContent = pending ? `Offline — ${pending} completed pack${pending===1?'':'s'} stored safely` : 'Offline — saving safely on this phone';
-    else if(pending) bar.textContent = `Online — ${pending} pack${pending===1?'':'s'} waiting to send`;
-    else bar.textContent = 'Online — saved safely on this phone';
+    else if(!navigator.onLine) bar.textContent = pending ? `Offline — ${pending} pack${pending===1?'':'s'} saved safely on this device` : '✓ Offline — saved safely on this device';
+    else if(retrying) bar.textContent = `Sync failed — will retry (${pending} pack${pending===1?'':'s'} safe on this device)`;
+    else if(pending) bar.textContent = `Waiting to sync — ${pending} pack${pending===1?'':'s'} safe on this device`;
+    else bar.textContent = '✓ Saved safely on this device';
     refreshSafetyPanel();
   }
 
@@ -209,6 +212,8 @@
   async function saveDraft(showMessage){
     if(saving) return;
     saving = true;
+    const bar = document.getElementById('offlineSaveStatus');
+    if(bar) bar.textContent = 'Saving…';
     try{
       const record = {
         id:currentDraftId(),
@@ -220,7 +225,7 @@
         snapshot:serializeForm()
       };
       await put(DRAFTS,record);
-      await updateStatus('Saved safely on this phone');
+      await updateStatus('✓ Saved safely on this device');
       if(showMessage) alert('Draft saved safely on this phone.');
     }catch(error){
       console.error('[offline] save failed',error);
@@ -265,7 +270,7 @@
       payload:draft
     };
     await put(SUBMISSIONS,submission);
-    await updateStatus('Completed Lot Pack locked safely on this phone');
+    await updateStatus('Completed Lot Pack locked safely on this device');
     await registerBackgroundSync();
     await syncPending();
     return submission;
@@ -291,11 +296,11 @@
       if(!navigator.onLine){ await updateStatus(); return; }
       const pending = await pendingItems();
       if(!pending.length){ await updateStatus(); return; }
-      if(!window.LotPackCloud?.uploadSubmission){ await updateStatus(`${pending.length} pack${pending.length===1?'':'s'} safe — sign in online to send`); return; }
+      if(!window.LotPackCloud?.uploadSubmission){ await updateStatus(`${pending.length} pack${pending.length===1?'':'s'} safe on this device — sign in online to sync`); return; }
       for(const item of pending.sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)))){
         if(item.nextAttemptAt && Date.now() < Date.parse(item.nextAttemptAt)) continue;
         item.status='uploading'; item.attempts=(item.attempts||0)+1; item.updatedAt=new Date().toISOString(); await put(SUBMISSIONS,item);
-        await updateStatus(`Sending ${item.summary?.lotNo || item.summary?.jobNo || 'Lot Pack'}…`);
+        await updateStatus(`Syncing ${item.summary?.lotNo || item.summary?.jobNo || 'Lot Pack'}…`);
         try{ await sendOne(item); }
         catch(error){
           item.status='pending'; item.lastError=String(error.message || error); item.nextAttemptAt=new Date(Date.now()+retryDelay(item.attempts)).toISOString(); item.updatedAt=new Date().toISOString(); await put(SUBMISSIONS,item);
