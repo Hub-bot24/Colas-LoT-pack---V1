@@ -1738,6 +1738,12 @@ canvas,
 .pdfchk-sub{font-size:10px;margin-top:2px;color:#333}
 .pdfchk-fields{display:flex;flex-wrap:wrap;gap:4px 26px;font-size:12px;margin-bottom:8px}
 .pdfchk-fields b{margin-right:4px;color:#00447c}
+/* Sign-off rows (Ball Pen, Canvas Mat): equal columns with borders so
+   labels and values never crowd each other. */
+.pdfchk-signoff{display:flex;border:1.2px solid #b9cbe0;margin-top:14px;font-size:12px;page-break-inside:avoid;break-inside:avoid}
+.pdfchk-signoff > div{flex:1 1 0;min-width:0;padding:8px 10px;min-height:24px;border-right:1.2px solid #b9cbe0;white-space:nowrap;overflow:hidden}
+.pdfchk-signoff > div:last-child{border-right:0}
+.pdfchk-signoff b{color:#00447c;margin-right:8px}
 .pdfchk-footer{display:flex;justify-content:space-between;font-size:8.5px;color:#333;margin-top:10px;border-top:1px solid #e2e8f0;padding-top:5px}
 .pdftest-calc{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;border:1.2px solid #00447c;background:#f5f9fd;padding:8px 10px;margin-top:8px;font-size:11px}
 .pdftest-calc b{color:#00447c}
@@ -1758,6 +1764,7 @@ canvas,
   #strayTopLogo{display:none!important}
   .pdfchk-header{display:flex}
   .pdfchk-fields{display:flex}
+  .pdfchk-signoff{display:flex}
   .pdfchk-footer{display:flex}
 }
 </style>
@@ -2133,7 +2140,7 @@ canvas,
       <span class="pdftest-fine">0.04mm: Single/Double Seals (Not Fatty)<br>0.06mm: Primer Seals (Not Fatty)<br>0.08mm: Fatty seals, Slurries and Dense Grade Asphalt<br>0.00mm: Granular Based (Not Primed)</span>
     </div>
   </div>
-  <div class="pdfchk-fields" style="margin-top:8px">
+  <div class="pdfchk-signoff" style="margin-top:10px">
     <div><b>Tested by:</b> <span id="pBallTestedBy"></span></div>
     <div><b>Date:</b> <span id="pBallDate2"></span></div>
     <div><b>Client Verified by:</b> <span id="pBallClientVerified"></span></div>
@@ -2228,7 +2235,7 @@ canvas,
   <div class="v113-title" style="margin-top:16px">Variation to Test Method: Remarks</div>
   <div style="border:1.2px solid #b9cbe0;border-top:none;min-height:60px"></div>
 
-  <div class="pdfchk-fields" style="margin-top:18px;font-size:13px">
+  <div class="pdfchk-signoff" style="margin-top:18px;font-size:13px">
     <div><b>Tested By:</b> <span id="pCanvasTestedBy"></span></div>
     <div><b>Date:</b> <span id="pCanvasTestDate"></span></div>
   </div>
@@ -5660,8 +5667,61 @@ canvas.signatureCanvas{
     color:#111!important;
   }
 
+  /* ---- Site Memo rebalance (both memo cards only; the Final Sign Off
+     pages above keep their existing rules). Body text lifted from
+     8.1-9px to ~12px to match the document's standard field size, and
+     signature cells held at ~19-20mm - room for a real signature
+     without giant blank boxes. The b-card shares the Ball Pen page, so
+     its old 140px blank spacer shrinks to pay for the larger text. ---- */
   #msf19bMemoCard{
-    margin-top:140px!important;
+    margin-top:56px!important;
+  }
+
+  #msf19bMemoCard .v113-title,
+  #v113PrintMSF19 .v113-title{
+    font-size:13px!important;
+    padding:6px 8px!important;
+    line-height:1.15!important;
+  }
+
+  #msf19bMemoCard .v113-body,
+  #v113PrintMSF19 .v113-body{
+    font-size:12px!important;
+    line-height:1.38!important;
+    padding:9px 10px!important;
+  }
+
+  #msf19bMemoCard .v113-table,
+  #v113PrintMSF19 .v113-table{
+    font-size:10.5px!important;
+  }
+
+  #msf19bMemoCard .v113-table th,
+  #msf19bMemoCard .v113-table td,
+  #v113PrintMSF19 .v113-table th,
+  #v113PrintMSF19 .v113-table td{
+    padding:4px 6px!important;
+    line-height:1.2!important;
+  }
+
+  #msf19bMemoCard .v113-sig-label,
+  #msf19bMemoCard .v113-sig-cell{
+    height:19mm!important;
+  }
+
+  #msf19bMemoCard .v113-sig-img{
+    height:16mm!important;
+    max-height:16mm!important;
+  }
+
+  #v113PrintMSF19 .v113-sig-label,
+  #v113PrintMSF19 .v113-sig-cell{
+    height:20mm!important;
+  }
+
+  #v113PrintMSF19 .v113-sig-img{
+    height:17mm!important;
+    max-height:17mm!important;
   }
 }
 </style>
