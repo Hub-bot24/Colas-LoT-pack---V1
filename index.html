@@ -1726,7 +1726,7 @@ canvas,
 .pdfcov-notes b{font-size:14px;color:#00447c}
 .pdfcov-notes-text{border-bottom:1px solid #00447c;min-height:20px;margin:14px 30px 0 30px;font-size:12px;padding-bottom:2px;white-space:pre-wrap}
 .pdfcov-checks-box{border:1.2px solid #b9cbe0;border-top:none;padding:8px 12px}
-.pdfcov-notes-box{border:1.2px solid #b9cbe0;border-top:none;min-height:46px;padding:8px 10px;font-size:12px;white-space:pre-wrap}
+.pdfcov-notes-box{border:1.2px solid #b9cbe0;border-top:none;min-height:130px;flex:1 1 auto;padding:8px 10px;font-size:12px;white-space:pre-wrap}
 .pdfcov-footer{display:flex;justify-content:space-between;font-size:9px;color:#333;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:5px}
 .pdfcov-page{display:flex;flex-direction:column;page-break-after:always;break-after:page}
 .pdfcov-page .pdfcov-footer{margin-top:auto;padding-top:20px}
@@ -2136,7 +2136,7 @@ canvas,
   <div class="pdfchk-fields" style="margin-top:8px">
     <div><b>Tested by:</b> <span id="pBallTestedBy"></span></div>
     <div><b>Date:</b> <span id="pBallDate2"></span></div>
-    <div><b>Client Verified by:</b> <span></span></div>
+    <div><b>Client Verified by:</b> <span id="pBallClientVerified"></span></div>
   </div>
 <div class="v113-card" id="msf19bMemoCard">
       <div class="pdfchk-header" style="border-bottom:none;padding:8px 8px 4px 8px;margin-bottom:0">
@@ -2320,7 +2320,7 @@ canvas,
 <div class="title">Conformance</div>
 <div class="grid">
 <div class="cell label">Conformed By</div><div class="cell"><input id="conformedBy" oninput="syncLotCoverPrint()"></div><div class="cell label">Conformed Date</div><div class="cell"><input id="conformedDate" type="date" oninput="syncLotCoverPrint()"></div>
-<div class="cell label">Notes</div><div class="cell" style="grid-column:span 3"><textarea id="lotNotes" rows="3" oninput="syncLotCoverPrint()"></textarea></div>
+<div class="cell label">Notes</div><div class="cell" style="grid-column:span 3"><textarea id="lotNotes" rows="9" style="min-height:230px;resize:vertical" oninput="syncLotCoverPrint()" placeholder="Site notes, variations, instructions, weather delays, NCR details…"></textarea></div>
 </div>
 </div>
 
@@ -2797,6 +2797,15 @@ window.addEventListener('beforeprint', forceDiagramIntoPrintFixed);
 </div>
 <div class="title">Temperature Correction</div>
 <div class="grid"><div class="cell label">Ts Standard Temp</div><div class="cell"><input id="ts"></div><div class="cell label">K Value</div><div class="cell"><select><option value="0">0.00 Granular</option><option value="0.04">0.04 Single/Double Seal</option><option value="0.06">0.06 Primer Seal</option><option value="0.08">0.08 Fatty/Slurry/Asphalt</option></select></div></div>
+<!-- Sign-off row. Appended at the END of #ball on purpose: the pen-table
+     inputs have no ids, so offline drafts key them by DOM position - any
+     control inserted before them would shift those keys and corrupt
+     restored ball data. CSS `order` (V124 style block) displays this row,
+     together with the existing Tested By / Date grid, at the bottom. -->
+<div class="title ballSignoffTitle">Ball Penetration Sign Off</div>
+<div class="grid ballSignoffGrid">
+<div class="cell label">Client Verified By</div><div class="cell"><input id="ballClientVerifiedBy" oninput="syncCanvasFieldsPrint()"></div>
+</div>
 </div>
 
 
@@ -3099,6 +3108,7 @@ function syncCanvasFieldsPrint(){
   set('pBallDate', workDate);
   set('pBallTestedBy', document.getElementById('ballTestedBy')?.value);
   set('pBallDate2', fmt(document.getElementById('ballTestDate')?.value));
+  set('pBallClientVerified', document.getElementById('ballClientVerifiedBy')?.value);
   set('pCanvasCustomer', customer);
   set('pCanvasJobNo', jobNo);
   set('pCanvasSiteLocation', siteLocation);
@@ -5907,6 +5917,20 @@ canvas.signatureCanvas{
   }
 }
 
+/* Ball Penetration sign-off: the row lives at the END of #ball in the DOM
+   (see the comment there - inserting it earlier would shift the positional
+   draft keys of the id-less pen-table inputs). Flex order displays it, and
+   the existing Tested By / Date grid, at the bottom of the section. */
+@media screen{
+  #ball.page.active{
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  #ball > .ballSignoffTitle{order:97;}
+  #ball > .pdfchk-header + .grid{order:98;}
+  #ball > .ballSignoffGrid{order:99;}
+}
+
 @media print{
   #appStatusStrip{display:none!important}
 }
@@ -5942,6 +5966,20 @@ canvas.signatureCanvas{
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount);
   else mount();
 })();
+</script>
+<script id="BALL_TESTEDBY_DEFAULT">
+/* Prefill Ball Pen "Tested By" from the QA Conducted By selection, only
+   after the saved draft has had time to restore and only if the field is
+   still empty. The dispatched input event runs the normal save + print
+   sync path, and the user can edit or clear the value freely. */
+setTimeout(function(){
+  var t=document.getElementById('ballTestedBy');
+  var p=document.getElementById('preparedBy');
+  if(t && p && !t.value && p.value){
+    t.value=p.value;
+    t.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+},2500);
 </script>
 </body>
 </html>
