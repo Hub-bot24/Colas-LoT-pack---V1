@@ -902,7 +902,7 @@ button, .action, .tabs button{
 /* ===== JOEL v15 PHONE FULL LOT PACK FIX ===== */
 html,body{width:100%;max-width:100%;overflow-x:hidden;overflow-x:clip;-webkit-text-size-adjust:100%;}
 .app{width:100%;max-width:1200px;margin:0 auto;border-left:0;border-right:0;}
-.page{width:100%;max-width:100%;overflow-x:hidden;}
+.page{width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden;}
 .tabs{position:-webkit-sticky;position:sticky;top:0;z-index:50;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
 .tabs button{flex:0 0 auto;min-width:max-content;}
 .actions{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
@@ -5311,8 +5311,123 @@ canvas.signatureCanvas{
 }
 </style>
 
+<style id="V124_TABLET_LANDSCAPE_SHELL">
+/* Deliberate tablet-landscape breakpoint (first approved field viewport is
+   1024x768). 951-1180px: below this the V123 phone rules own the layout,
+   above it desktop rules apply. Previously 1024 fell through to desktop. */
+@media screen and (min-width:951px) and (max-width:1180px){
+  /* All seven tabs share the width evenly - no sideways tab scrolling. */
+  .tabs,
+  #mainTabs{
+    display:grid!important;
+    grid-template-columns:repeat(7, minmax(0,1fr))!important;
+    overflow:visible!important;
+    white-space:normal!important;
+  }
+  .tabs button,
+  #mainTabs button{
+    min-width:0!important;
+    width:100%!important;
+    white-space:normal!important;
+    font-size:13px!important;
+    padding:8px 4px!important;
+    line-height:1.1!important;
+  }
+
+  /* Account + save-state strip: sits in normal flow directly beneath the
+     sticky tab row and sticks with it, so the controls reserve layout space
+     instead of floating over form fields at the bottom corners. */
+  #appStatusStrip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:4px 10px;
+    min-height:34px;
+    box-sizing:border-box;
+    background:#f1f4f8;
+    border-bottom:1px solid #cbd5e1;
+    position:-webkit-sticky;
+    position:sticky;
+    top:46px;
+    z-index:999998;
+  }
+  #appStatusStrip #lotpackUserBar,
+  #appStatusStrip #offlineSaveStatus{
+    position:static!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    box-shadow:none!important;
+    max-width:48%!important;
+    z-index:auto!important;
+  }
+  #appStatusStrip #lotpackUserBar{
+    border:1px solid #cbd5e1;
+    background:#fff;
+  }
+  #appStatusStrip #offlineSaveStatus{
+    cursor:pointer;
+  }
+
+  /* Safety panel opens under the strip instead of over the lower form. */
+  #offlineSafetyPanel{
+    top:92px!important;
+    bottom:auto!important;
+    right:12px!important;
+  }
+
+  /* Signatures: the fixed-width canvas + Clear button overflowed the grid
+     track at this width; let the canvas flex down beside its tools. */
+  #sign .grid{
+    min-width:0!important;
+  }
+  #sign canvas.signatureCanvas{
+    width:auto!important;
+    flex:1 1 200px!important;
+    min-width:0!important;
+  }
+  #sign .cell.label{
+    white-space:normal!important;
+  }
+}
+
+@media print{
+  #appStatusStrip{display:none!important}
+}
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="cloud-core.js"></script>
 <script src="offline-core.js"></script>
+<script id="V124_STATUS_STRIP_JS">
+/* Re-parents the account bar (cloud-core.js) and save-status pill
+   (offline-core.js) into a status strip below the tab row. Outside the
+   tablet range their own fixed-position styling still applies, so phones
+   and desktop keep the existing bottom-corner behaviour; all listeners
+   (sign out, safety panel) survive the move. */
+(function(){
+  function mount(){
+    var tabs=document.getElementById('mainTabs');
+    if(!tabs) return false;
+    var strip=document.getElementById('appStatusStrip');
+    if(!strip){
+      strip=document.createElement('div');
+      strip.id='appStatusStrip';
+      tabs.insertAdjacentElement('afterend',strip);
+    }
+    var user=document.getElementById('lotpackUserBar');
+    var save=document.getElementById('offlineSaveStatus');
+    if(user && user.parentElement!==strip) strip.appendChild(user);
+    if(save && save.parentElement!==strip) strip.appendChild(save);
+    return Boolean(user && save);
+  }
+  var tries=0;
+  var timer=setInterval(function(){ if(mount() || ++tries>40) clearInterval(timer); },250);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount);
+  else mount();
+})();
+</script>
 </body>
 </html>
