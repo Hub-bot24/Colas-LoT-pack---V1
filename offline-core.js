@@ -80,6 +80,7 @@
     const controls = Array.from(document.querySelectorAll('input,select,textarea,[contenteditable="true"]'));
     controls.forEach((el,index)=>{
       if(el.type === 'file') return;
+      if(el.closest('#lotpackAuthOverlay')) return;
       const key = fieldKey(el,index);
       if(el.type === 'checkbox' || el.type === 'radio') fields[key] = {kind:el.type,checked:el.checked,value:el.value};
       else if(el.isContentEditable) fields[key] = {kind:'contenteditable',value:el.innerHTML};
@@ -97,6 +98,7 @@
     const controls = Array.from(document.querySelectorAll('input,select,textarea,[contenteditable="true"]'));
     controls.forEach((el,index)=>{
       if(el.type === 'file') return;
+      if(el.closest('#lotpackAuthOverlay')) return;
       const saved = snapshot.fields && snapshot.fields[fieldKey(el,index)];
       if(!saved) return;
       if(saved.kind === 'checkbox' || saved.kind === 'radio') el.checked = !!saved.checked;

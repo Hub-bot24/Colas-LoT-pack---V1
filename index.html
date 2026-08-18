@@ -2177,7 +2177,7 @@ canvas,
           <th class="v113-date-label">Date</th><td class="v113-date-cell" id="v113_b_colas_date"></td>
         </tr>
         <tr>
-          <th class="v113-sig-label">Colas Signature</th><td class="v113-sig-cell" colspan="3"></td>
+          <th class="v113-sig-label">Colas Signature</th><td class="v113-sig-cell" colspan="3"><img id="v113_b_colas_sig" class="v113-sig-img"></td>
         </tr>
       </table>
     </div>
@@ -2826,7 +2826,7 @@ window.addEventListener('beforeprint', forceDiagramIntoPrintFixed);
 </div>
 <div class="title">MSF19-1B — Excessive Ball Penetration Result</div>
 <div class="memo"><p>Ball Penetration testing performed by Colas QLD Pty Ltd indicates that the pavement does not satisfy the specification requirements. MRTS11 states that where a ball penetration test result exceeds 3.0mm, the surface shall not be sprayed unless otherwise approved by the Administrator.</p><p>Proceeding may result in increased risk of flushing, binder pickup and seal failure due to excessive aggregate embedment.</p>
-<div class="grid"><div class="cell label">Client Representative Name</div><div class="cell"><input id="msf19bClientName"></div><div class="cell label">Date</div><div class="cell"><input id="msf19bDate" type="date"></div><div class="cell label">Signature</div><div class="cell" style="grid-column:span 3"><canvas id="msf19bSigCanvas" class="signatureCanvas" width="680" height="100"></canvas></div></div>
+<div class="grid"><div class="cell label">Client Representative Name</div><div class="cell"><input id="msf19bClientName"></div><div class="cell label">Date</div><div class="cell"><input id="msf19bDate" type="date"></div><div class="cell label">Client Signature</div><div class="cell" style="grid-column:span 3"><canvas id="msf19bSigCanvas" class="signatureCanvas" width="680" height="100"></canvas></div><div class="cell label">COLAS Representative Name</div><div class="cell"><input id="msf19bColasName"></div><div class="cell label">Date</div><div class="cell"><input id="msf19bColasDate" type="date"></div><div class="cell label">COLAS Signature</div><div class="cell" style="grid-column:span 3"><canvas id="msf19bColasSigCanvas" class="signatureCanvas" width="680" height="100"></canvas></div></div>
 </div>
 <div class="title">MSF19-1A — Client Instruction Not to Sweep</div>
 <div class="memo"><p>The client has requested Colas QLD Pty Ltd not to sweep the pavement surface prior to sealing. Failure to sweep may result in increased risk of seal failure due to impaired adhesion to the underlying pavement.</p>
@@ -4867,11 +4867,17 @@ async function emailReport(){
     if(b.date && !b.date.value && workDate) b.date.value=workDate.value || '';
     if(a.date && !a.date.value && workDate) a.date.value=workDate.value || '';
 
+    var bColasDate=byId('msf19bColasDate');
+    if(bColasDate && !bColasDate.value && workDate) bColasDate.value=workDate.value || '';
+
     setText('v113_b_name', textOf(b.name));
     setText('v113_b_date', fmtDate(textOf(b.date)));
     setImg('v113_b_sig', canvasData(b.canvas));
-    setText('v113_b_colas_name', textOf(byId('preparedBy')));
-    setText('v113_b_colas_date', fmtDate(textOf(workDate)));
+    /* COLAS side now comes from the live MSF19-1B fields; QA Conducted By /
+       Work Date remain only as fallbacks when the fields are left empty. */
+    setText('v113_b_colas_name', textOf(byId('msf19bColasName')) || textOf(byId('preparedBy')));
+    setText('v113_b_colas_date', fmtDate(textOf(bColasDate)) || fmtDate(textOf(workDate)));
+    setImg('v113_b_colas_sig', canvasData(byId('msf19bColasSigCanvas')));
 
     setText('v113_a_name', textOf(a.name));
     setText('v113_a_date', fmtDate(textOf(a.date)));
