@@ -51,7 +51,7 @@ body{font-family:Arial;margin:0;background:#eef1f5;color:#111}.app{max-width:120
 
 @media print{
   .site-box{height:420px;border:2px solid #111;margin-top:0px;display:flex;align-items:center;justify-content:center;color:#555;font-size:14px}
-  .notes-box{height:90px;border:1px solid #555;margin-top:0px;padding:8px;font-size:12px}
+  .notes-box{min-height:26mm;height:auto;border:1px solid #555;margin-top:0px;padding:8px;font-size:12px;white-space:pre-wrap;break-inside:avoid;page-break-inside:avoid}
   .memo-print{border:1px solid #555;padding:10px;line-height:1.45;font-size:12px;margin-bottom:10px}
   .qvc-print td{height:20px}
 }
@@ -482,6 +482,7 @@ body{font-family:Arial;margin:0;background:#eef1f5;color:#111}.app{max-width:120
 html, body{
   -webkit-text-size-adjust:100%;
   overflow-x:hidden!important;
+  overflow-x:clip!important;
 }
 
 body{
@@ -854,7 +855,7 @@ button, .action, .tabs button{
 
 /* --- MOBILE / TABLET FIX: stop Ball Pen and Canvas Mat pages being cut off on phones --- */
 @media screen and (max-width: 900px){
-  html,body{width:100%;overflow-x:hidden;}
+  html,body{width:100%;overflow-x:hidden;overflow-x:clip;}
   .app{width:100%;max-width:none;margin:0;border:0;}
   .page{padding:10px;}
   .top{padding:12px 10px;text-align:center;}
@@ -899,10 +900,10 @@ button, .action, .tabs button{
 
 
 /* ===== JOEL v15 PHONE FULL LOT PACK FIX ===== */
-html,body{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+html,body{width:100%;max-width:100%;overflow-x:hidden;overflow-x:clip;-webkit-text-size-adjust:100%;}
 .app{width:100%;max-width:1200px;margin:0 auto;border-left:0;border-right:0;}
 .page{width:100%;max-width:100%;overflow-x:hidden;}
-.tabs{position:sticky;top:0;z-index:50;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
+.tabs{position:-webkit-sticky;position:sticky;top:0;z-index:50;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
 .tabs button{flex:0 0 auto;min-width:max-content;}
 .actions{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
 .table-scroll,.phoneTableWrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
@@ -1751,6 +1752,9 @@ canvas,
 <tr><td colspan="6" class="qvc-section">PREP</td></tr><tr><td>1</td><td>Witness Point 1</td><td class="left">Cover aggregate protected from contamination and dust.</td><td><span class="print-checkbox pQvc" data-id="7" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="7" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="7" data-col="ncr">☐</span></td></tr><tr><td>2</td><td>Check Item</td><td class="left">Surface swept and loose material removed.</td><td><span class="print-checkbox pQvc" data-id="11" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="11" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="11" data-col="ncr">☐</span></td></tr><tr><td>3</td><td>Hold Point 5</td><td class="left">Ball penetration >3.0mm requires approval before spraying.</td><td><span class="print-checkbox pQvc" data-id="12" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="12" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="12" data-col="ncr">☐</span></td></tr><tr><td>4</td><td>Check Item</td><td class="left">Client sets out pavement marks.</td><td><span class="print-checkbox pQvc" data-id="14" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="14" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="14" data-col="ncr">☐</span></td></tr><tr><td>5</td><td>Witness Point 4</td><td class="left">Pavement temperature rising and above limits.</td><td><span class="print-checkbox pQvc" data-id="17" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="17" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="17" data-col="ncr">☐</span></td></tr><tr><td colspan="6" class="qvc-section">BITUMEN</td></tr><tr><td>6</td><td>Check Item</td><td class="left">Spraying completed before temperature drops below limits.</td><td><span class="print-checkbox pQvc" data-id="18" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="18" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="18" data-col="ncr">☐</span></td></tr><tr><td>7</td><td>Check Item</td><td class="left">No spraying during rain or likely rain.</td><td><span class="print-checkbox pQvc" data-id="19" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="19" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="19" data-col="ncr">☐</span></td></tr><tr><td>8</td><td>Check Item</td><td class="left">Joints neat with no gap or overlap.</td><td><span class="print-checkbox pQvc" data-id="20" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="20" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="20" data-col="ncr">☐</span></td></tr><tr><td>9</td><td>Witness Point 5</td><td class="left">Spraybar nozzles comply with certificate.</td><td><span class="print-checkbox pQvc" data-id="21" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="21" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="21" data-col="ncr">☐</span></td></tr><tr><td>10</td><td>Check Item</td><td class="left">Bitumen sprayed at correct temperature.</td><td><span class="print-checkbox pQvc" data-id="22" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="22" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="22" data-col="ncr">☐</span></td></tr><tr><td>11</td><td>Check Item</td><td class="left">Actual spray rate within ±5%.</td><td><span class="print-checkbox pQvc" data-id="25" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="25" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="25" data-col="ncr">☐</span></td></tr><tr><td colspan="6" class="qvc-section">AGGREGATE</td></tr><tr><td>12</td><td>Check Item</td><td class="left">Bare areas re-treated.</td><td><span class="print-checkbox pQvc" data-id="26" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="26" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="26" data-col="ncr">☐</span></td></tr><tr><td>13</td><td>Witness Point 7</td><td class="left">Aggregate spread uniform and tight.</td><td><span class="print-checkbox pQvc" data-id="27" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="27" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="27" data-col="ncr">☐</span></td></tr><tr><td>14</td><td>Check Item</td><td class="left">Aggregate spread within ±10%.</td><td><span class="print-checkbox pQvc" data-id="28" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="28" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="28" data-col="ncr">☐</span></td></tr><tr><td>15</td><td>Check Item</td><td class="left">Aggregate spreading starts within required time.</td><td><span class="print-checkbox pQvc" data-id="29" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="29" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="29" data-col="ncr">☐</span></td></tr><tr><td>16</td><td>Check Item</td><td class="left">Cover aggregate rolled sufficiently.</td><td><span class="print-checkbox pQvc" data-id="30" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="30" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="30" data-col="ncr">☐</span></td></tr><tr><td>17</td><td>Hold Point 8</td><td class="left">Excess aggregate swept before opening to traffic.</td><td><span class="print-checkbox pQvc" data-id="31" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="31" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="31" data-col="ncr">☐</span></td></tr><tr><td colspan="6" class="qvc-section">DOCUMENTATION</td></tr><tr><td>18</td><td>Check Item</td><td class="left">Spray records completed and available.</td><td><span class="print-checkbox pQvc" data-id="32" data-col="colas">☐</span></td><td><span class="print-checkbox pQvc" data-id="32" data-col="client">☐</span></td><td><span class="print-checkbox pQvc" data-id="32" data-col="ncr">☐</span></td></tr>
 </table>
 
+  <div class="print-section">Notes</div>
+  <div id="pLotNotes" class="notes-box"></div>
+
 
   <!-- V33_FULL_REPORT_SITE_DIAGRAM_START -->
 <div id="v33FullReportSiteDiagramPage" class="v33-site-diagram-print-page">
@@ -1973,6 +1977,13 @@ canvas,
         <tr>
           <th class="v113-sig-label">Client Signature</th><td class="v113-sig-cell" colspan="3"><img id="v113_b_sig" class="v113-sig-img"></td>
         </tr>
+        <tr>
+          <th class="v113-name-label">COLAS Rep Name</th><td class="v113-name-cell" id="v113_b_colas_name"></td>
+          <th class="v113-date-label">Date</th><td class="v113-date-cell" id="v113_b_colas_date"></td>
+        </tr>
+        <tr>
+          <th class="v113-sig-label">COLAS Signature</th><td class="v113-sig-cell" colspan="3"><img id="v113_b_colas_sig" class="v113-sig-img"></td>
+        </tr>
       </table>
     </div>
 
@@ -1988,6 +1999,13 @@ canvas,
         </tr>
         <tr>
           <th class="v113-sig-label">Client Signature</th><td class="v113-sig-cell" colspan="3"><img id="v113_a_sig" class="v113-sig-img"></td>
+        </tr>
+        <tr>
+          <th class="v113-name-label">COLAS Rep Name</th><td class="v113-name-cell" id="v113_a_colas_name"></td>
+          <th class="v113-date-label">Date</th><td class="v113-date-cell" id="v113_a_colas_date"></td>
+        </tr>
+        <tr>
+          <th class="v113-sig-label">COLAS Signature</th><td class="v113-sig-cell" colspan="3"><img id="v113_a_colas_sig" class="v113-sig-img"></td>
         </tr>
       </table>
     </div>
@@ -2072,6 +2090,9 @@ canvas,
   <label class="included-item"><input type="checkbox" class="incCheck" data-inc="qvc" onchange="syncIncludedPrint()"><span>QVC Attached</span></label>
   <label class="included-item"><input type="checkbox" class="incCheck" data-inc="ncr" onchange="syncIncludedPrint()"><span>NCR</span></label>
 </div>
+
+<div class="title">Notes</div>
+<textarea id="lotNotes" rows="7" style="min-height:150px;resize:vertical" oninput="syncLotNotesPrint()" placeholder="Site notes, variations, instructions, weather delays, NCR details…"></textarea>
 </div>
 
 <div id="qvc" class="page">
@@ -2510,11 +2531,11 @@ window.addEventListener('beforeprint', forceDiagramIntoPrintFixed);
 <div id="memo" class="page">
 <div class="title">MSF19-1B — Excessive Ball Penetration Result</div>
 <div class="memo"><p>Ball Penetration testing performed by Colas QLD Pty Ltd indicates that the pavement does not satisfy the specification requirements. MRTS11 states that where a ball penetration test result exceeds 3.0mm, the surface shall not be sprayed unless otherwise approved by the Administrator.</p><p>Proceeding may result in increased risk of flushing, binder pickup and seal failure due to excessive aggregate embedment.</p>
-<div class="grid"><div class="cell label">Client Representative Name</div><div class="cell"><input id="msf19bClientName"></div><div class="cell label">Date</div><div class="cell"><input id="msf19bDate" type="date"></div><div class="cell label">Signature</div><div class="cell" style="grid-column:span 3"><canvas id="msf19bSigCanvas" class="signatureCanvas" width="680" height="100"></canvas></div></div>
+<div class="grid"><div class="cell label">Client Representative Name</div><div class="cell"><input id="msf19bClientName"></div><div class="cell label">Date</div><div class="cell"><input id="msf19bDate" type="date"></div><div class="cell label">Client Signature</div><div class="cell" style="grid-column:span 3"><canvas id="msf19bSigCanvas" class="signatureCanvas" width="680" height="100"></canvas></div><div class="cell label">COLAS Representative Name</div><div class="cell"><input id="msf19bColasName"></div><div class="cell label">Date</div><div class="cell"><input id="msf19bColasDate" type="date"></div><div class="cell label">COLAS Signature</div><div class="cell" style="grid-column:span 3"><canvas id="msf19bColasSigCanvas" class="signatureCanvas" width="680" height="100"></canvas></div></div>
 </div>
 <div class="title">MSF19-1A — Client Instruction Not to Sweep</div>
 <div class="memo"><p>The client has requested Colas QLD Pty Ltd not to sweep the pavement surface prior to sealing. Failure to sweep may result in increased risk of seal failure due to impaired adhesion to the underlying pavement.</p>
-<div class="grid"><div class="cell label">Client Representative Name</div><div class="cell"><input id="msf19aClientName"></div><div class="cell label">Date</div><div class="cell"><input id="msf19aDate" type="date"></div><div class="cell label">Signature</div><div class="cell" style="grid-column:span 3"><canvas id="msf19aSigCanvas" class="signatureCanvas" width="680" height="100"></canvas></div></div>
+<div class="grid"><div class="cell label">Client Representative Name</div><div class="cell"><input id="msf19aClientName"></div><div class="cell label">Date</div><div class="cell"><input id="msf19aDate" type="date"></div><div class="cell label">Client Signature</div><div class="cell" style="grid-column:span 3"><canvas id="msf19aSigCanvas" class="signatureCanvas" width="680" height="100"></canvas></div><div class="cell label">COLAS Representative Name</div><div class="cell"><input id="msf19aColasName"></div><div class="cell label">Date</div><div class="cell"><input id="msf19aColasDate" type="date"></div><div class="cell label">COLAS Signature</div><div class="cell" style="grid-column:span 3"><canvas id="msf19aColasSigCanvas" class="signatureCanvas" width="680" height="100"></canvas></div></div>
 </div>
 </div>
 
@@ -2746,6 +2767,12 @@ function syncIncludedPrint(){
       el.textContent = cb.checked ? "☑" : "☐";
     });
   });
+}
+
+function syncLotNotesPrint(){
+  const src = document.getElementById('lotNotes');
+  const dest = document.getElementById('pLotNotes');
+  if(dest) dest.textContent = (src && src.value) ? src.value : '';
 }
 
 function saveDraft(){localStorage.setItem("colasLotPackDraft",document.documentElement.outerHTML);alert("Draft saved on this device.")}
@@ -3929,7 +3956,9 @@ function previewPrint(){
 (function(){
   function byId(id){return document.getElementById(id);}
   function repairSignatureBlock(){
-    var canvases=[].slice.call(document.querySelectorAll('#sign canvas.signatureCanvas, canvas.signatureCanvas'));
+    // Scoped to #sign only: the old unscoped fallback matched the memo canvases
+    // first in document order and renamed them, breaking memo signatures.
+    var canvases=[].slice.call(document.querySelectorAll('#sign canvas.signatureCanvas'));
     if(canvases[0]) canvases[0].id='colasSigCanvas';
     if(canvases[1]) canvases[1].id='clientSigCanvas';
 
@@ -3963,6 +3992,7 @@ function previewPrint(){
 /* V105: frozen tabs like Excel + signature pointer alignment fix */
 @media screen{
   .tabs{
+    position:-webkit-sticky!important;
     position:sticky!important;
     top:0!important;
     z-index:999999!important;
@@ -4214,10 +4244,13 @@ function previewPrint(){
 
   function init(){
     // Fix duplicate IDs from old builds.
-    var canvases=[].slice.call(document.querySelectorAll('#sign canvas.signatureCanvas, canvas.signatureCanvas'));
-    if(canvases[0]) canvases[0].id='colasSigCanvas';
-    if(canvases[1]) canvases[1].id='clientSigCanvas';
+    // Rename repair applies only to the #sign block; the old unscoped selector
+    // hit the memo canvases first and renamed them, breaking memo signatures.
+    var signCanvases=[].slice.call(document.querySelectorAll('#sign canvas.signatureCanvas'));
+    if(signCanvases[0]) signCanvases[0].id='colasSigCanvas';
+    if(signCanvases[1]) signCanvases[1].id='clientSigCanvas';
 
+    var canvases=[].slice.call(document.querySelectorAll('canvas.signatureCanvas'));
     canvases.forEach(setupCanvas);
   }
 
@@ -4354,7 +4387,9 @@ function previewPrint(){
     if(!memo) return [];
     return [].slice.call(memo.querySelectorAll('.memo')).map(function(box){
       var inputs=[].slice.call(box.querySelectorAll('input'));
-      return {name:inputs[0], date:inputs[1], canvas:box.querySelector('canvas.signatureCanvas')};
+      var canvases=[].slice.call(box.querySelectorAll('canvas.signatureCanvas'));
+      return {name:inputs[0], date:inputs[1], canvas:canvases[0],
+              colasName:inputs[2], colasDate:inputs[3], colasCanvas:canvases[1]};
     });
   }
   function signData(){
@@ -4372,14 +4407,22 @@ function previewPrint(){
 
     if(b.date && !b.date.value && workDate) b.date.value=workDate.value || '';
     if(a.date && !a.date.value && workDate) a.date.value=workDate.value || '';
+    if(b.colasDate && !b.colasDate.value && workDate) b.colasDate.value=workDate.value || '';
+    if(a.colasDate && !a.colasDate.value && workDate) a.colasDate.value=workDate.value || '';
 
     setText('v113_b_name', textOf(b.name));
     setText('v113_b_date', fmtDate(textOf(b.date)));
     setImg('v113_b_sig', canvasData(b.canvas));
+    setText('v113_b_colas_name', textOf(b.colasName));
+    setText('v113_b_colas_date', fmtDate(textOf(b.colasDate)));
+    setImg('v113_b_colas_sig', canvasData(b.colasCanvas));
 
     setText('v113_a_name', textOf(a.name));
     setText('v113_a_date', fmtDate(textOf(a.date)));
     setImg('v113_a_sig', canvasData(a.canvas));
+    setText('v113_a_colas_name', textOf(a.colasName));
+    setText('v113_a_colas_date', fmtDate(textOf(a.colasDate)));
+    setImg('v113_a_colas_sig', canvasData(a.colasCanvas));
 
     var s=signData();
     if(s.date && !s.date.value && workDate) s.date.value=workDate.value || '';
@@ -4390,6 +4433,8 @@ function previewPrint(){
     setText('v113_client_rep', textOf(s.clientRep));
     setImg('v113_colas_sig', canvasData(s.colasSig));
     setImg('v113_client_sig', canvasData(s.clientSig));
+
+    try{ if(typeof syncLotNotesPrint === 'function') syncLotNotesPrint(); }catch(e){}
   }
 
   window.v113SyncPrint = syncV113;
@@ -5153,7 +5198,10 @@ canvas.signatureCanvas{
     height:auto!important;
     min-height:100%!important;
     overflow-x:hidden!important;
-    overflow-y:auto!important;
+    overflow-x:clip!important;
+    /* visible, not auto: pairing clip with auto computes clip back to hidden,
+       which turns body into a scroll container and disables the sticky tabs */
+    overflow-y:visible!important;
     touch-action:pan-y!important;
   }
 
@@ -5162,6 +5210,7 @@ canvas.signatureCanvas{
     min-height:100vh!important;
     max-height:none!important;
     overflow-x:hidden!important;
+    overflow-x:clip!important;
     overflow-y:visible!important;
     -webkit-overflow-scrolling:touch!important;
     touch-action:pan-y!important;
@@ -5169,6 +5218,7 @@ canvas.signatureCanvas{
 
   .tabs,
   #mainTabs{
+    position:-webkit-sticky!important;
     position:sticky!important;
     top:0!important;
     z-index:999999!important;
@@ -5236,7 +5286,9 @@ canvas.signatureCanvas{
 /* Landscape phone: still no sideways tab sliding */
 @media screen and (max-width:950px) and (orientation:landscape){
   html, body{
-    overflow-y:auto!important;
+    /* visible, not auto: auto + overflow-x:clip would compute back to hidden
+       and break the sticky tabs (see portrait block above) */
+    overflow-y:visible!important;
   }
 
   .app{
