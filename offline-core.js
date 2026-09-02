@@ -271,6 +271,11 @@
       summary:draft.summary || {},
       payload:draft
     };
+    try{
+      await updateStatus('Preparing PDF copy of the report\u2026');
+      const printPdf = window.LotPackPrintPdf && window.LotPackPrintPdf.capture ? await window.LotPackPrintPdf.capture() : null;
+      if(printPdf) submission.payload = Object.assign({}, submission.payload, {printPdfBase64: printPdf});
+    }catch(_e){}
     await put(SUBMISSIONS,submission);
     await updateStatus('Completed Lot Pack locked safely on this device');
     await registerBackgroundSync();
