@@ -112,6 +112,20 @@
     wrap.style.cssText = 'width:' + innerWmm + 'mm!important;max-width:none!important;margin:0!important;padding:0!important;background:#fff';
     seg.els[0].parentNode.insertBefore(wrap, seg.els[0]);
     seg.els.forEach(function(el){ wrap.appendChild(el); });
+    // Collect safe cut positions (block boundaries, CSS px from wrapper top)
+    // so page slicing never cuts through the middle of a table or signature.
+    var wrapTop = wrap.getBoundingClientRect().top;
+    var cuts = [];
+    function collect(node, depth){
+      Array.prototype.forEach.call(node.children, function(child){
+        var r = child.getBoundingClientRect();
+        if(r.height < 8) return;
+        cuts.push(r.top - wrapTop);
+        if(depth < 2 && r.height > 200) collect(child, depth + 1);
+      });
+    }
+    collect(wrap, 0);
+    seg.cutPoints = cuts.sort(function(a,b){ return a-b; });
     return window.html2canvas(wrap, {
       scale: CAPTURE_SCALE,
       backgroundColor: '#ffffff',
@@ -127,11 +141,22 @@
     var innerHmm = (seg.landscape ? PAGE.pW : PAGE.pH) - 2 * PAGE.margin;
     var pxPerMm = canvas.width / innerWmm;
     var chunkPx = Math.floor(innerHmm * pxPerMm);
+    var scale = canvas.width / ((seg.landscape ? PAGE.pH : PAGE.pW) - 2 * PAGE.margin) * MM_PER_PX; // canvas px per CSS px
+    var cutsPx = (seg.cutPoints || []).map(function(c){ return Math.round(c * scale); });
     var y = 0;
     var first = isFirstPage;
     while(y < canvas.height){
       var h = Math.min(chunkPx, canvas.height - y);
       if(h < 4) break;
+      if(y + h < canvas.height - 4){
+        // not the last slice: prefer ending the page on a block boundary
+        var best = -1;
+        for(var c = 0; c < cutsPx.length; c++){
+          var rel = cutsPx[c] - y;
+          if(rel > h * 0.45 && rel <= h && rel > best) best = rel;
+        }
+        if(best > 0) h = best;
+      }
       var slice = document.createElement('canvas');
       slice.width = canvas.width;
       slice.height = h;
