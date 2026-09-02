@@ -45,9 +45,10 @@
           <input id="lotpackAuthPassword" type="password" autocomplete="current-password" minlength="8" required>
           <div class="lp-auth-actions">
             <button class="lp-auth-primary" type="submit">Sign in</button>
-            <button class="lp-auth-secondary" id="lotpackCreateAccount" type="button">Create test account</button>
+            <button class="lp-auth-secondary" id="lotpackForgotPassword" type="button">Forgot password?</button>
           </div>
           <div id="lotpackAuthMessage" role="status"></div>
+          <p style="margin:10px 0 0;font-size:12px;color:#6b7280">Accounts are set up by your administrator. Contact the office if you need access.</p>
         </form>
       </div>`;
     document.body.appendChild(overlay);
@@ -61,7 +62,7 @@
       event.preventDefault();
       await signIn();
     });
-    document.getElementById('lotpackCreateAccount').addEventListener('click', signUp);
+    document.getElementById('lotpackForgotPassword').addEventListener('click', sendPasswordReset);
   }
 
   function message(text, type){
@@ -79,6 +80,7 @@
   }
 
   async function signIn(){
+    if(!client){ message('Not connected yet. Check the internet connection and reload the page.','error'); return; }
     const {email,password} = credentials();
     if(!email || !password){ message('Enter your email and password.','error'); return; }
     message('Signing in…');
@@ -86,14 +88,28 @@
     if(error) message(error.message,'error');
   }
 
-  async function signUp(){
-    const {email,password} = credentials();
-    if(!email || password.length < 8){ message('Use a valid email and a password of at least 8 characters.','error'); return; }
-    message('Creating account…');
-    const {data,error} = await client.auth.signUp({email,password});
+  async function sendPasswordReset(){
+    if(!client){ message('Not connected yet. Check the internet connection and reload the page.','error'); return; }
+    const {email} = credentials();
+    if(!email){ message('Enter your work email above first, then press Forgot password.','error'); return; }
+    if(!navigator.onLine){ message('Connect to the internet to reset your password.','error'); return; }
+    message('Sending reset email…');
+    const {error} = await client.auth.resetPasswordForEmail(email,{
+      redirectTo: window.location.origin + window.location.pathname
+    });
     if(error){ message(error.message,'error'); return; }
-    if(data.session) message('Account created and signed in.');
-    else message('Account created. Check your email for the confirmation link, then sign in.');
+    message('Reset email sent. Open the link on this phone, then choose a new password when asked.');
+  }
+
+  async function completePasswordRecovery(){
+    const newPassword = prompt('Enter a new password for your account (at least 8 characters):') || '';
+    if(newPassword.length < 8){
+      alert('Password not changed - it must be at least 8 characters. Press Forgot password to try again.');
+      return;
+    }
+    const {error} = await client.auth.updateUser({password:newPassword});
+    if(error) alert('Password change failed: ' + error.message);
+    else alert('Password updated. Use it next time you sign in.');
   }
 
   async function signOut(){
@@ -165,7 +181,10 @@
     };
     const {data:{session}} = await client.auth.getSession();
     applySession(session);
-    client.auth.onAuthStateChange((_event,nextSession)=>applySession(nextSession));
+    client.auth.onAuthStateChange((event,nextSession)=>{
+      applySession(nextSession);
+      if(event === 'PASSWORD_RECOVERY') completePasswordRecovery();
+    });
   }
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',init);
