@@ -121,7 +121,9 @@
         var r = child.getBoundingClientRect();
         if(r.height < 8) return;
         cuts.push(r.top - wrapTop);
-        if(depth < 2 && r.height > 200) collect(child, depth + 1);
+        // Only look inside a block for cut points when it cannot possibly
+        // fit on one page by itself; otherwise the whole block moves intact.
+        if(depth < 2 && r.height > 1050) collect(child, depth + 1);
       });
     }
     collect(wrap, 0);
