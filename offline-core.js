@@ -195,6 +195,14 @@
     const pendingList = await pendingItems().catch(()=>[]);
     const pending = pendingList.length;
     const retrying = pendingList.some(item => item.lastError);
+    const OVERDUE_MS = 15 * 60 * 1000;
+    const overdue = pendingList.some(item => item.createdAt && (Date.now() - Date.parse(item.createdAt)) > OVERDUE_MS);
+    bar.style.background = overdue ? '#b91c1c' : '';
+    if(overdue){
+      bar.textContent = `\u26a0 ${pending} pack${pending===1?'':'s'} NOT received by office yet \u2014 keep the app open near signal`;
+      refreshSafetyPanel();
+      return;
+    }
     if(message) bar.textContent = message;
     else if(!navigator.onLine) bar.textContent = pending ? `Offline — ${pending} pack${pending===1?'':'s'} saved safely on this device` : '✓ Offline — saved safely on this device';
     else if(retrying) bar.textContent = `Sync failed — will retry (${pending} pack${pending===1?'':'s'} safe on this device)`;
@@ -227,6 +235,7 @@
         snapshot:serializeForm()
       };
       await put(DRAFTS,record);
+      scheduleDraftCloudBackup(record);
       await updateStatus('✓ Saved safely on this device');
       if(showMessage) alert('Draft saved safely on this phone.');
     }catch(error){
@@ -234,6 +243,22 @@
       await updateStatus('SAVE FAILED — keep this page open');
       if(showMessage) alert('The draft could not be saved. Keep this page open and export a backup.');
     }finally{ saving = false; }
+  }
+
+  let lastDraftBackup = 0;
+  let draftBackupTimer = null;
+  // Fire-and-forget cloud copy of the in-progress draft (at most once a
+  // minute, online + signed-in only) so a lost phone cannot lose a shift.
+  function scheduleDraftCloudBackup(record){
+    if(!navigator.onLine) return;
+    const push = () => {
+      lastDraftBackup = Date.now();
+      try{ window.LotPackCloud?.uploadDraftBackup?.(record).catch(()=>{}); }catch(_e){}
+    };
+    const since = Date.now() - lastDraftBackup;
+    if(since > 60000){ push(); return; }
+    clearTimeout(draftBackupTimer);
+    draftBackupTimer = setTimeout(push, 60000 - since);
   }
 
   function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(()=>saveDraft(false),250); }

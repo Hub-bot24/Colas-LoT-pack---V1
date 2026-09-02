@@ -112,6 +112,17 @@
     else alert('Password updated. Use it next time you sign in.');
   }
 
+  async function uploadDraftBackup(draft){
+    if(!client || !currentUser || !draft || !draft.id) return;
+    await client.from('lot_pack_drafts').upsert({
+      user_id: currentUser.id,
+      draft_id: draft.id,
+      updated_at: new Date().toISOString(),
+      summary: draft.summary || {},
+      payload: draft
+    }, {onConflict:'user_id,draft_id'});
+  }
+
   async function signOut(){
     if(!confirm('Sign out of this phone? Drafts remain stored on the device.')) return;
     await client.auth.signOut();
@@ -175,6 +186,7 @@
     });
     window.LotPackCloud = {
       uploadSubmission,
+      uploadDraftBackup,
       getUser:()=>currentUser,
       getLastUser:()=>({id:localStorage.getItem('lotpackLastUserId') || '',email:localStorage.getItem('lotpackLastUserEmail') || ''}),
       getClient:()=>client

@@ -65,3 +65,23 @@ drop trigger if exists set_lot_pack_updated_at on public.lot_pack_submissions;
 create trigger set_lot_pack_updated_at
 before update on public.lot_pack_submissions
 for each row execute function public.set_lot_pack_updated_at();
+
+
+-- Live draft backups: every signed-in device mirrors its in-progress draft
+-- here (throttled), so a lost or broken phone cannot lose a shift's work.
+create table if not exists public.lot_pack_drafts (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  draft_id text not null,
+  updated_at timestamptz not null default now(),
+  summary jsonb not null default '{}'::jsonb,
+  payload jsonb not null default '{}'::jsonb,
+  primary key (user_id, draft_id)
+);
+alter table public.lot_pack_drafts enable row level security;
+revoke all on table public.lot_pack_drafts from anon;
+grant select, insert, update, delete on table public.lot_pack_drafts to authenticated;
+drop policy if exists "workers manage own drafts" on public.lot_pack_drafts;
+create policy "workers manage own drafts" on public.lot_pack_drafts
+  for all to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
