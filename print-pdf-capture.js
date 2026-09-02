@@ -108,7 +108,10 @@
 
   function captureSegment(doc, seg){
     var wrap = doc.createElement('div');
-    var innerWmm = (seg.landscape ? PAGE.pH : PAGE.pW) - 2 * PAGE.margin;
+    // Lay out at the same width the real print engine uses (.print-report is
+    // 200mm in print CSS), so pagination matches the browser print preview;
+    // the image is scaled ~3% on placement, which is invisible.
+    var innerWmm = seg.landscape ? 281 : 200;
     wrap.style.cssText = 'width:' + innerWmm + 'mm!important;max-width:none!important;margin:0!important;padding:0!important;background:#fff';
     seg.els[0].parentNode.insertBefore(wrap, seg.els[0]);
     seg.els.forEach(function(el){ wrap.appendChild(el); });
