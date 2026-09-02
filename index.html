@@ -5606,10 +5606,18 @@ canvas.signatureCanvas{
     margin:0 0 3mm 0!important;
   }
 
-  #v113PrintMSF19 .v113-title,
-  #v113PrintFinalSignoff .v113-title{
+  #v113PrintMSF19 .v113-title{
     font-size:10.5px!important;
     padding:4px 6px!important;
+    line-height:1.05!important;
+  }
+
+  /* Final Sign Off tables read at the document's standard field size;
+     the old 8.5px compaction predates the memo rebalance and made the
+     Lot Summary row near-illegible on paper. */
+  #v113PrintFinalSignoff .v113-title{
+    font-size:11.5px!important;
+    padding:3px 6px!important;
     line-height:1.05!important;
   }
 
@@ -5619,17 +5627,24 @@ canvas.signatureCanvas{
     line-height:1.15!important;
   }
 
-  #v113PrintMSF19 .v113-table,
-  #v113PrintFinalSignoff .v113-table{
+  #v113PrintMSF19 .v113-table{
     font-size:8.5px!important;
   }
 
+  #v113PrintFinalSignoff .v113-table{
+    font-size:11.5px!important;
+  }
+
   #v113PrintMSF19 .v113-table th,
-  #v113PrintMSF19 .v113-table td,
-  #v113PrintFinalSignoff .v113-table th,
-  #v113PrintFinalSignoff .v113-table td{
+  #v113PrintMSF19 .v113-table td{
     padding:2.5px 4px!important;
     line-height:1.05!important;
+  }
+
+  #v113PrintFinalSignoff .v113-table th,
+  #v113PrintFinalSignoff .v113-table td{
+    padding:3px 5px!important;
+    line-height:1.1!important;
   }
 
   #v113PrintMSF19 .v113-sig-label,
