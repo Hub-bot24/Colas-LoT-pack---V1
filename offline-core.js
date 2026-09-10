@@ -419,6 +419,9 @@
     // Restore the Site Diagram's original photo, rotation, crop and any
     // committed cleaned HD result from their own media store.
     try{ if(typeof window.restoreSiteDiagramMedia === 'function') await window.restoreSiteDiagramMedia(); }catch(_e){}
+    // Restore this draft's Site Photos (Phase C) - same generic lotMedia
+    // store, type SITE_PHOTO, independent sequence scope from SITE_DIAGRAM.
+    try{ if(typeof window.restoreSitePhotoMedia === 'function') await window.restoreSitePhotoMedia(); }catch(_e){}
   }
 
   async function sha256(text){

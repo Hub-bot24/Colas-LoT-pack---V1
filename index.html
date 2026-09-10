@@ -1000,6 +1000,45 @@ html,body{width:100%;max-width:100%;overflow-x:hidden;overflow-x:clip;-webkit-te
   #site .sd-diagram-actions{width:100%;justify-content:flex-end}
 }
 
+/* Phase C: Site Photos - reused visual language of the Site Diagram cards
+   (#sd-card/#sd-btn/#sd-row etc.) but scoped to #photos with its own sp-
+   prefix, since the existing sd- rules are ID-scoped to #site. A grid
+   gallery (not a single-column list) since a Lot can carry 20+ photos. */
+#photos .sp-card{background:#fff;border:1px solid #d0d5dd;border-radius:12px;padding:12px;margin:10px 0;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+#photos .sp-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#photos .sp-btn{background:#00447c;color:#fff;border:0;border-radius:8px;padding:12px 16px;font-weight:700;cursor:pointer;font-size:15px}
+#photos .sp-btn.secondary{background:#344054}
+#photos .sp-btn.light{background:#e9eef5;color:#111}
+#photos .sp-btn.danger{background:#b42318}
+#photos .sp-btn[disabled]{opacity:.45;cursor:not-allowed}
+#photos .sp-file-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#photos .sp-empty{text-align:center;color:#667085;padding:26px 12px}
+#photos .sp-storage{font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;margin-top:8px}
+#photos .sp-storage.ok{background:#ecfdf3;color:#027a48;border:1px solid #abefc6}
+#photos .sp-storage.low{background:#fef3f2;color:#b42318;border:1px solid #fecdca}
+#photos .sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:12px}
+#photos .sp-item{border:1.5px solid #d0d5dd;border-radius:10px;padding:8px;background:#fff;display:flex;flex-direction:column;gap:6px}
+#photos .sp-thumb{width:100%;aspect-ratio:4/3;border:1px solid #d0d5dd;border-radius:6px;background:#f4f6f8;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;position:relative}
+#photos .sp-thumb img{width:100%;height:100%;object-fit:cover}
+#photos .sp-thumb.sp-pending{color:#98a2b3;font-size:12px}
+#photos .sp-num{font-weight:800;color:#00447c}
+#photos .sp-desc-input{border:1px solid #d0d5dd;border-radius:6px;padding:7px;font-size:13px;width:100%;min-height:38px;resize:vertical;font-family:inherit;box-sizing:border-box}
+#photos .sp-desc-input::placeholder{color:#98a2b3}
+#photos .sp-meta{font-size:11.5px;color:#667085}
+#photos .sp-actions{display:flex;gap:6px;flex-wrap:wrap}
+#photos .sp-actions button{padding:9px 10px;font-size:12.5px;border-radius:8px;min-height:38px;flex:1}
+@media(max-width:560px){
+  #photos .sp-grid{grid-template-columns:1fr}
+  #photos .sp-row>*{width:100%}
+  #photos .sp-card{padding:10px;margin:8px 0}
+}
+#sp_viewerOverlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;padding:16px;box-sizing:border-box}
+#sp_viewerOverlay.sp-open{display:flex}
+#sp_viewerImg{max-width:100%;max-height:74vh;object-fit:contain;border-radius:6px;background:#111}
+#sp_viewerInfo{color:#fff;text-align:center;margin-top:14px;max-width:640px;font-size:14px}
+#sp_viewerClose{position:absolute;top:16px;right:16px;background:#fff;color:#111;border:0;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:14px}
+@media print{#sp_viewerOverlay{display:none!important}}
+
 
 @media print{
   .diagramImg, #diagramImg{
@@ -1396,6 +1435,58 @@ html,body{width:100%;max-width:100%;overflow-x:hidden;overflow-x:clip;-webkit-te
     color:#333!important;
   }
 
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+}
+</style>
+
+<style id="sp-site-photos-print-css">
+/* Phase C: Site Photo attachment pages. Same structural pattern proven in
+   Phase B for additional Site Diagram pages - each page is inserted as its
+   own DIRECT child of .print-report (never nested in a wrapper div), since
+   print-pdf-capture.js's page-boundary detector only inspects direct
+   children of .print-report when deciding where one captured page ends
+   and the next begins. */
+.v40-sitephoto-page{display:none;}
+@media print{
+  .v40-sitephoto-page{
+    display:block!important;
+    page-break-before:always!important;
+    break-before:page!important;
+    width:190mm!important; height:277mm!important;
+    margin:0!important; padding:0!important;
+    background:white!important; overflow:hidden!important;
+    position:relative!important; box-sizing:border-box!important;
+    color:#111!important; font-family:Arial,Helvetica,sans-serif!important;
+  }
+  .v40-sp-sheet{
+    width:190mm!important; height:277mm!important;
+    position:relative!important; background:white!important;
+    margin:0!important; padding:0!important; box-sizing:border-box!important;
+  }
+  .v40-sp-logo{position:absolute!important;left:0!important;top:2px!important;width:130px!important;height:auto!important;}
+  .v40-sp-title{
+    position:absolute!important;left:0!important;right:0!important;top:15mm!important;height:9mm!important;
+    background:#00447c!important;color:#fff!important;font-weight:700!important;font-size:13px!important;
+    display:flex!important;align-items:center!important;justify-content:center!important;letter-spacing:.04em!important;
+  }
+  .v40-sp-table{
+    position:absolute!important;left:0!important;right:0!important;top:24mm!important;
+    font-size:10.5px!important;line-height:1.5!important;border:1px solid #b9cbe0!important;
+    padding:4px 8px!important;display:grid!important;grid-template-columns:1fr 1fr!important;column-gap:10px!important;
+  }
+  .v40-sp-photos{
+    position:absolute!important;left:0!important;right:0!important;top:44mm!important;bottom:12mm!important;
+    display:flex!important;flex-direction:column!important;gap:6mm!important;
+  }
+  .v40-sp-photo-block{flex:1 1 0!important;min-height:0!important;display:flex!important;flex-direction:column!important;border:1.2px solid #00447c!important;padding:4px!important;box-sizing:border-box!important;}
+  .v40-sp-photo-label{font-weight:700!important;font-size:11px!important;color:#00447c!important;margin-bottom:2px!important;flex:none!important;}
+  .v40-sp-photo-imgwrap{flex:1 1 0!important;min-height:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;background:#f4f6f8!important;}
+  .v40-sp-photo-imgwrap img{max-width:100%!important;max-height:100%!important;object-fit:contain!important;}
+  .v40-sp-photo-caption{font-size:10px!important;color:#333!important;margin-top:2px!important;flex:none!important;max-height:9mm!important;overflow:hidden!important;}
+  .v40-sp-footer{
+    position:absolute!important;left:8mm!important;right:8mm!important;bottom:0!important;
+    display:flex!important;justify-content:space-between!important;font-size:10px!important;color:#333!important;
+  }
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
 }
 </style>
@@ -1874,10 +1965,11 @@ canvas,
   <button type="button" class="active" data-page="lot">1 Lot Report</button>
   <button type="button" data-page="qvc">2 QVC</button>
   <button type="button" data-page="site">3 Site Diagram</button>
-  <button type="button" data-page="canvas">4 Canvas / Embed</button>
-  <button type="button" data-page="ball">5 Ball Pen / Mat</button>
-  <button type="button" data-page="memo">6 Memo</button>
-  <button type="button" data-page="sign">7 Signatures</button>
+  <button type="button" data-page="photos">4 Site Photos</button>
+  <button type="button" data-page="canvas">5 Canvas / Embed</button>
+  <button type="button" data-page="ball">6 Ball Pen / Mat</button>
+  <button type="button" data-page="memo">7 Memo</button>
+  <button type="button" data-page="sign">8 Signatures</button>
 </div>
 
 
@@ -3534,6 +3626,434 @@ window.addEventListener('beforeprint', forceDiagramIntoPrintFixed);
 
 </script>
 </div>
+
+<div id="photos" class="page">
+  <div class="title">Site Photos</div>
+  <div class="sp-card" id="sp_galleryCard">
+    <b id="sp_heading">Site Photos (0)</b>
+    <div id="sp_emptyState" class="sp-empty">No site photos added yet.<br>Photos can be added as supporting evidence for this Lot Pack.</div>
+    <div id="sp_grid" class="sp-grid"></div>
+    <div class="sp-row" style="margin-top:12px">
+      <label class="sp-btn sp-upload-btn" for="sp_cameraInput">Take Photo</label>
+      <input class="sp-file-hidden" id="sp_cameraInput" type="file" accept="image/*" capture="environment">
+      <label class="sp-btn secondary sp-upload-btn" for="sp_fileInput">Choose Existing</label>
+      <input class="sp-file-hidden" id="sp_fileInput" type="file" accept="image/*" multiple>
+    </div>
+    <div id="sp_status" style="font-weight:bold;color:#00447c;margin-top:8px"></div>
+    <div id="sp_storageBadge" class="sp-storage ok" style="display:none"></div>
+  </div>
+</div>
+
+<div id="sp_viewerOverlay">
+  <button type="button" id="sp_viewerClose">Close</button>
+  <img id="sp_viewerImg" src="" alt="Site Photo">
+  <div id="sp_viewerInfo"></div>
+</div>
+
+<script>
+(function(){
+  const VERSION='v1-site-photos-phase-c';
+  function $(id){ return document.getElementById(id); }
+  const gridEl=$('sp_grid'), headingEl=$('sp_heading'), emptyEl=$('sp_emptyState');
+  const cameraInput=$('sp_cameraInput'), fileInput=$('sp_fileInput');
+  const statusEl=$('sp_status'), storageBadge=$('sp_storageBadge');
+  const viewerOverlay=$('sp_viewerOverlay'), viewerImg=$('sp_viewerImg'), viewerInfo=$('sp_viewerInfo'), viewerClose=$('sp_viewerClose');
+
+  // Site Photos are evidence photos, not diagrams - no crop/rotate/clean
+  // pipeline. Chosen processing target: 2400px longest edge (mid-point of
+  // the recommended 2000-2600px range), JPEG q0.85 for the evidence copy,
+  // 220px/q0.6 for the gallery thumbnail. See Phase C final report for the
+  // measured storage/quality rationale.
+  const TARGET_LONGEST_EDGE=2400;
+  const JPEG_QUALITY=0.85;
+  const THUMB_LONGEST_EDGE=220;
+  const THUMB_QUALITY=0.6;
+
+  let photos=[]; // in-memory mirror of this draft's lotMedia SITE_PHOTO records - read-through, never a competing source of truth
+  let thumbUrlCache={}; // mediaId -> object URL for the gallery thumbnails, rebuilt every render
+  let viewerObjectUrl=null;
+  let sitePhotoDataUrls={}; // mediaId -> dataURL cache for print pages (see print integration below)
+
+  function status(msg, ok){
+    statusEl.textContent=msg||'';
+    statusEl.style.color = (ok===false) ? '#b42318' : '#00447c';
+  }
+
+  function fmtDate(iso){
+    try{
+      const d=new Date(iso);
+      if(isNaN(d.getTime())) return '';
+      return d.toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'}) + ', ' + d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+    }catch(_e){ return ''; }
+  }
+
+  // Permanent identity (mediaId) and display numbering are separate - the
+  // raw persisted sequence is always the display number, never renumbered
+  // on delete (same design as Phase B Site Diagrams), so a photo's audit
+  // identity never shifts because an earlier photo was removed.
+  function photoDisplayLabel(rec){ return 'Photo '+rec.sequence; }
+
+  async function blobToBitmap(blob){
+    try{
+      return await createImageBitmap(blob, {imageOrientation:'from-image'});
+    }catch(_e){
+      // Fallback for browsers without EXIF-aware createImageBitmap support -
+      // decodes via a plain <img> with no orientation correction rather than
+      // failing the whole photo.
+      return new Promise((resolve,reject)=>{
+        const img=new Image();
+        const url=URL.createObjectURL(blob);
+        img.onload=()=>{ URL.revokeObjectURL(url); resolve(img); };
+        img.onerror=(e)=>{ URL.revokeObjectURL(url); reject(e); };
+        img.src=url;
+      });
+    }
+  }
+
+  function drawScaled(source, sw, sh, longestEdge){
+    let w=sw, h=sh;
+    if(Math.max(w,h) > longestEdge){
+      const scale=longestEdge/Math.max(w,h);
+      w=Math.max(1,Math.round(w*scale));
+      h=Math.max(1,Math.round(h*scale));
+    }
+    const c=document.createElement('canvas');
+    c.width=w; c.height=h;
+    c.getContext('2d').drawImage(source,0,0,w,h);
+    return c;
+  }
+
+  function canvasToBlob(canvas, type, quality){
+    return new Promise(resolve=>canvas.toBlob(resolve, type, quality));
+  }
+
+  // Only a processed evidence copy is retained (no separate raw source
+  // Blob) - unlike Site Diagrams, photos have no re-edit pipeline (no
+  // crop/rotate/re-clean), so there is nothing that would ever need to
+  // re-derive a new processed copy from an original. Keeping a multi-MB
+  // source Blob per photo for 20+ photos/Lot would cost real phone storage
+  // for no evidence benefit. See report section 4/6.
+  async function processOneFile(file){
+    const bitmap=await blobToBitmap(file);
+    const sw=bitmap.width, sh=bitmap.height;
+    const processedCanvas=drawScaled(bitmap, sw, sh, TARGET_LONGEST_EDGE);
+    const processedDataUrl=processedCanvas.toDataURL('image/jpeg', JPEG_QUALITY);
+    const processedBlob=await canvasToBlob(processedCanvas, 'image/jpeg', JPEG_QUALITY);
+    const thumbCanvas=drawScaled(bitmap, sw, sh, THUMB_LONGEST_EDGE);
+    const thumbnailBlob=await canvasToBlob(thumbCanvas, 'image/jpeg', THUMB_QUALITY);
+    const processedWidth=processedCanvas.width, processedHeight=processedCanvas.height;
+    processedCanvas.width=0; processedCanvas.height=0;
+    thumbCanvas.width=0; thumbCanvas.height=0;
+    if(bitmap.close) bitmap.close();
+    return {processedBlob, processedWidth, processedHeight, thumbnailBlob, processedDataUrl};
+  }
+
+  function addedByName(){
+    try{
+      if(window.LotPackAuth && typeof window.LotPackAuth.getDisplayName === 'function'){
+        const n=window.LotPackAuth.getDisplayName();
+        if(n) return n;
+      }
+    }catch(_e){}
+    try{
+      const prep=document.getElementById('preparedBy');
+      if(prep && prep.value) return prep.value;
+    }catch(_e){}
+    return '';
+  }
+
+  // Sequential - one file's full decode/downscale/encode/save cycle
+  // completes (and its bitmap/canvases are released) before the next file
+  // starts, so a 20-photo batch never holds more than one photo's worth of
+  // decoded pixels in memory at once.
+  async function handleFiles(fileList){
+    const files=Array.from(fileList||[]);
+    if(!files.length) return;
+    status('Processing '+files.length+' photo'+(files.length>1?'s':'')+'…', true);
+    let okCount=0, failCount=0;
+    for(const file of files){
+      try{
+        const {processedBlob, processedWidth, processedHeight, thumbnailBlob, processedDataUrl} = await processOneFile(file);
+        const rec = await window.LotPackOffline.createMediaRecord('SITE_PHOTO', {
+          processedBlob, processedWidth, processedHeight, thumbnailBlob,
+          description:'', addedBy: addedByName()
+        });
+        photos.push(rec);
+        sitePhotoDataUrls[rec.mediaId]=processedDataUrl;
+        okCount++;
+        renderGallery();
+      }catch(err){
+        failCount++;
+        try{ console.warn('[site-photos] failed to process/save a photo - existing photos are unaffected', err); }catch(_e){}
+      }
+    }
+    if(failCount===0){
+      status(okCount+' photo'+(okCount>1?'s':'')+' saved safely on this device.', true);
+    }else if(okCount>0){
+      status(okCount+' saved, '+failCount+' failed to process. Existing photos are unaffected - try the failed one again.', false);
+    }else{
+      status('Could not process '+(failCount>1?'those photos':'that photo')+'. Existing photos are unaffected - please try again.', false);
+    }
+    refreshStorageBadge();
+  }
+
+  cameraInput.addEventListener('change', (e)=>{ handleFiles(e.target.files); e.target.value=''; });
+  fileInput.addEventListener('change', (e)=>{ handleFiles(e.target.files); e.target.value=''; });
+
+  function getThumbUrl(rec){
+    if(thumbUrlCache[rec.mediaId]) return thumbUrlCache[rec.mediaId];
+    if(!rec.thumbnailBlob) return null;
+    const url=URL.createObjectURL(rec.thumbnailBlob);
+    thumbUrlCache[rec.mediaId]=url;
+    return url;
+  }
+  function releaseThumbUrls(){
+    Object.keys(thumbUrlCache).forEach(k=>{ try{ URL.revokeObjectURL(thumbUrlCache[k]); }catch(_e){} });
+    thumbUrlCache={};
+  }
+
+  function renderGallery(){
+    headingEl.textContent='Site Photos ('+photos.length+')';
+    emptyEl.style.display = photos.length ? 'none' : 'block';
+    releaseThumbUrls();
+    gridEl.innerHTML='';
+    photos.slice().sort((a,b)=>a.sequence-b.sequence).forEach(rec=>{
+      const item=document.createElement('div');
+      item.className='sp-item';
+      item.dataset.mediaId=rec.mediaId;
+
+      const thumb=document.createElement('div');
+      thumb.className='sp-thumb';
+      const thumbUrl=getThumbUrl(rec);
+      if(thumbUrl){
+        const img=document.createElement('img'); img.src=thumbUrl; img.alt='';
+        thumb.appendChild(img);
+      }else{
+        thumb.classList.add('sp-pending');
+        thumb.textContent=photoDisplayLabel(rec);
+      }
+      thumb.addEventListener('click', ()=>openViewer(rec.mediaId));
+      item.appendChild(thumb);
+
+      const num=document.createElement('div');
+      num.className='sp-num';
+      num.textContent=photoDisplayLabel(rec);
+      item.appendChild(num);
+
+      const descInput=document.createElement('textarea');
+      descInput.className='sp-desc-input';
+      descInput.placeholder='Optional description (e.g. Existing pavement before sealing)';
+      descInput.value=rec.description||'';
+      descInput.rows=2;
+      let descTimer=null;
+      descInput.addEventListener('input', ()=>{
+        clearTimeout(descTimer);
+        const val=descInput.value;
+        descTimer=setTimeout(()=>saveDescription(rec.mediaId, val), 500);
+      });
+      item.appendChild(descInput);
+
+      const meta=document.createElement('div');
+      meta.className='sp-meta';
+      meta.textContent='Added: '+fmtDate(rec.createdAt);
+      item.appendChild(meta);
+
+      const actions=document.createElement('div');
+      actions.className='sp-actions';
+      const viewBtn=document.createElement('button');
+      viewBtn.type='button'; viewBtn.className='sp-btn light'; viewBtn.textContent='View';
+      viewBtn.addEventListener('click', ()=>openViewer(rec.mediaId));
+      actions.appendChild(viewBtn);
+      const delBtn=document.createElement('button');
+      delBtn.type='button'; delBtn.className='sp-btn danger'; delBtn.textContent='Delete';
+      delBtn.addEventListener('click', ()=>deletePhoto(rec.mediaId));
+      actions.appendChild(delBtn);
+      item.appendChild(actions);
+
+      gridEl.appendChild(item);
+    });
+    try{ syncSitePhotoPrintPages(); }catch(_e){}
+  }
+
+  async function saveDescription(mediaId, newDescription){
+    const rec=photos.find(p=>p.mediaId===mediaId);
+    if(!rec || rec.description===newDescription) return;
+    const prevDescription=rec.description;
+    rec.description=newDescription;
+    rec.updatedAt=new Date().toISOString();
+    try{
+      await window.LotPackOffline.saveMediaRecord(rec);
+      try{ syncSitePhotoPrintPages(); }catch(_e){}
+    }catch(err){
+      rec.description=prevDescription; // do not claim saved when the write failed
+      status('Could not save that description - check device storage and try again.', false);
+    }
+  }
+
+  async function deletePhoto(mediaId){
+    const rec=photos.find(p=>p.mediaId===mediaId);
+    if(!rec) return;
+    if(!confirm('Delete '+photoDisplayLabel(rec)+'?\n\nThis photo will be removed from this Lot Pack.')) return;
+    await window.LotPackOffline.softDeleteMedia(mediaId);
+    photos=photos.filter(p=>p.mediaId!==mediaId);
+    delete sitePhotoDataUrls[mediaId];
+    delete thumbUrlCache[mediaId];
+    renderGallery();
+    refreshStorageBadge();
+  }
+
+  // Only ever decodes the ONE selected photo's full-size Blob, on demand -
+  // never all photos at once.
+  function openViewer(mediaId){
+    const rec=photos.find(p=>p.mediaId===mediaId);
+    if(!rec || !rec.processedBlob) return;
+    if(viewerObjectUrl){ URL.revokeObjectURL(viewerObjectUrl); viewerObjectUrl=null; }
+    viewerObjectUrl=URL.createObjectURL(rec.processedBlob);
+    viewerImg.src=viewerObjectUrl;
+    viewerInfo.textContent=photoDisplayLabel(rec) + (rec.description ? ' — '+rec.description : '');
+    viewerOverlay.classList.add('sp-open');
+  }
+  function closeViewer(){
+    viewerOverlay.classList.remove('sp-open');
+    viewerImg.src='';
+    if(viewerObjectUrl){ URL.revokeObjectURL(viewerObjectUrl); viewerObjectUrl=null; }
+  }
+  viewerClose.addEventListener('click', closeViewer);
+  viewerOverlay.addEventListener('click', (e)=>{ if(e.target===viewerOverlay) closeViewer(); });
+
+  // Informational only - never blocks adding photos, per spec. A simple,
+  // non-alarming badge using the browser's own storage estimate.
+  async function refreshStorageBadge(){
+    try{
+      if(!navigator.storage || !navigator.storage.estimate){ storageBadge.style.display='none'; return; }
+      const est = await navigator.storage.estimate();
+      const usage=est.usage, quota=est.quota;
+      if(!quota){ storageBadge.style.display='none'; return; }
+      const pct = usage/quota;
+      storageBadge.style.display='inline-flex';
+      if(pct >= 0.85){
+        storageBadge.className='sp-storage low';
+        storageBadge.textContent='Storage getting low ('+Math.round(pct*100)+'% used on this device) - consider syncing or freeing space soon.';
+      }else{
+        storageBadge.className='sp-storage ok';
+        storageBadge.textContent='Storage OK ('+Math.round(pct*100)+'% used on this device)';
+      }
+    }catch(_e){ storageBadge.style.display='none'; }
+  }
+
+  // ---- print integration --------------------------------------------
+  // Same pattern proven in Phase B: print-pdf-capture.js's syncPrintDom()
+  // calls this SYNCHRONOUSLY right before cloning the report's outerHTML,
+  // so it must never decode a Blob inline - sitePhotoDataUrls is populated
+  // ahead of time (at add-time, and at boot via primeSitePhotoPrintCache).
+  function getSitePhotoLogoSrc(){
+    const existing=document.querySelector('#v33FullReportSiteDiagramPage .v33-logo') || document.querySelector('.pdfchk-logo');
+    return existing ? existing.src : '';
+  }
+  function sitePhotoPrintAnchor(){ return document.getElementById('v113PrintMSF19'); }
+  function sitePhotoCoverValues(){
+    const val=id=>{ const el=document.getElementById(id); return el ? (el.value||el.textContent||'') : ''; };
+    const fmt=d=>d ? d.split('-').reverse().join('/') : '';
+    return {
+      customer: val('customer'), job: val('jobNo'), loc: val('siteLocation'),
+      lot: val('lotNoFinal') || val('lotNoTop') || '', date: fmt(document.getElementById('workDate') ? document.getElementById('workDate').value : '')
+    };
+  }
+  function buildSitePhotoPageElement(pair){
+    const cover=sitePhotoCoverValues();
+    const page=document.createElement('div');
+    page.className='v40-sitephoto-page';
+    page.innerHTML =
+      '<div class="v40-sp-sheet">' +
+        '<img class="v40-sp-logo" src="'+getSitePhotoLogoSrc()+'" alt="COLAS">' +
+        '<div class="v40-sp-title">SITE PHOTOS</div>' +
+        '<div class="v40-sp-table">' +
+          '<div><b>Customer:</b> '+cover.customer+'</div>' +
+          '<div><b>Job No:</b> '+cover.job+'</div>' +
+          '<div><b>Lot #:</b> '+cover.lot+'</div>' +
+          '<div><b>Site / Location:</b> '+cover.loc+'</div>' +
+          '<div><b>Date:</b> '+cover.date+'</div>' +
+        '</div>' +
+        '<div class="v40-sp-photos"></div>' +
+        '<div class="v40-sp-footer"><span>Uncontrolled Document when printed</span><span>Approved: Technical Manager - May 2017</span></div>' +
+      '</div>';
+    const photosArea=page.querySelector('.v40-sp-photos');
+    pair.forEach(rec=>{
+      const block=document.createElement('div');
+      block.className='v40-sp-photo-block';
+      const label=document.createElement('div');
+      label.className='v40-sp-photo-label';
+      label.textContent=photoDisplayLabel(rec);
+      block.appendChild(label);
+      const imgWrap=document.createElement('div');
+      imgWrap.className='v40-sp-photo-imgwrap';
+      const img=document.createElement('img');
+      img.src=sitePhotoDataUrls[rec.mediaId]||'';
+      img.alt=photoDisplayLabel(rec);
+      imgWrap.appendChild(img);
+      block.appendChild(imgWrap);
+      if(rec.description){
+        const cap=document.createElement('div');
+        cap.className='v40-sp-photo-caption';
+        cap.textContent='Description: '+rec.description;
+        block.appendChild(cap);
+      }
+      photosArea.appendChild(block);
+    });
+    return page;
+  }
+  function syncSitePhotoPrintPages(){
+    const anchor=sitePhotoPrintAnchor();
+    if(!anchor || !anchor.parentNode) return;
+    document.querySelectorAll('.v40-sitephoto-page').forEach(el=>el.remove());
+    const printable=photos.filter(p=>p.processedBlob && sitePhotoDataUrls[p.mediaId]).sort((a,b)=>a.sequence-b.sequence);
+    let insertAfter=anchor.previousElementSibling || anchor;
+    const pairs=[];
+    for(let i=0;i<printable.length;i+=2) pairs.push(printable.slice(i,i+2));
+    // Insert BEFORE the Site Memo anchor, in order, each page its own
+    // direct sibling of .print-report (see the comment on the print CSS
+    // above for why that matters).
+    let ref=anchor;
+    pairs.forEach(pair=>{
+      const el=buildSitePhotoPageElement(pair);
+      ref.parentNode.insertBefore(el, ref);
+    });
+  }
+  window.syncSitePhotoPrintPages=syncSitePhotoPrintPages;
+
+  // One-time (per app load) decode of every already-saved photo's
+  // processed Blob into a cached dataURL, sequentially - one Blob decode at
+  // a time, released immediately after - so opening a draft with 20 photos
+  // never holds more than one decoded image in memory at once.
+  async function primeSitePhotoPrintCache(){
+    const pending=photos.filter(p=>p.processedBlob && !sitePhotoDataUrls[p.mediaId]);
+    for(const rec of pending){
+      try{
+        const bitmap=await blobToBitmap(rec.processedBlob);
+        const c=document.createElement('canvas');
+        c.width=bitmap.width; c.height=bitmap.height;
+        c.getContext('2d').drawImage(bitmap,0,0);
+        sitePhotoDataUrls[rec.mediaId]=c.toDataURL('image/jpeg', JPEG_QUALITY);
+        c.width=0; c.height=0;
+        if(bitmap.close) bitmap.close();
+      }catch(_e){}
+    }
+  }
+
+  window.addEventListener('beforeprint', function(){ try{ syncSitePhotoPrintPages(); }catch(_e){} });
+
+  window.restoreSitePhotoMedia=async function(){
+    if(!window.LotPackOffline) return;
+    try{
+      photos=await window.LotPackOffline.getMediaByType('SITE_PHOTO');
+      renderGallery();
+      await primeSitePhotoPrintCache();
+      refreshStorageBadge();
+      try{ syncSitePhotoPrintPages(); }catch(_e){}
+    }catch(_e){}
+  };
+})();
+</script>
 
 <div id="canvas" class="page">
 <div class="pdfchk-header">
