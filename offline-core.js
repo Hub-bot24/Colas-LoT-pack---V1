@@ -2,11 +2,12 @@
   'use strict';
 
   const DB_NAME = 'colas-lotpack-offline';
-  const DB_VERSION = 3;
+  const DB_VERSION = 4;
   const DRAFTS = 'drafts';
   const SUBMISSIONS = 'submissions';
   const META = 'meta';
   const SITE_MEDIA = 'siteMedia';
+  const LOT_MEDIA = 'lotMedia';
   const CURRENT_KEY = 'colasLotPackCurrentDraftId';
   const CONFIG = window.LOTPACK_CONFIG || {};
   let dbPromise;
@@ -23,8 +24,9 @@
     if(dbPromise) return dbPromise;
     dbPromise = new Promise((resolve,reject)=>{
       const req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = () => {
+      req.onupgradeneeded = (event) => {
         const db = req.result;
+        const tx = event.target.transaction;
         if(!db.objectStoreNames.contains(DRAFTS)) db.createObjectStore(DRAFTS,{keyPath:'id'});
         if(!db.objectStoreNames.contains(SUBMISSIONS)){
           const store = db.createObjectStore(SUBMISSIONS,{keyPath:'id'});
@@ -32,15 +34,95 @@
           store.createIndex('createdAt','createdAt',{unique:false});
         }
         if(!db.objectStoreNames.contains(META)) db.createObjectStore(META,{keyPath:'key'});
-        // One record per Lot Pack draft, holding the Site Diagram's retained
-        // original photo and cleaned HD result as Blobs (not base64) so they
-        // never bloat the generic autosaved form snapshot.
+        // v3 store. Superseded by lotMedia below (one record per draft was a
+        // hard limit - exactly one Site Diagram, ever). Left in place
+        // un-deleted as a migration source and rollback safety net; nothing
+        // writes to it any more from v4 onward.
         if(!db.objectStoreNames.contains(SITE_MEDIA)) db.createObjectStore(SITE_MEDIA,{keyPath:'draftId'});
+
+        // v4: generic multi-record media store for a Lot Pack draft's
+        // evidence - Site Diagrams today, Site Photos / Ball Pen location
+        // diagrams / other future evidence types later, all through the same
+        // shape and the same store rather than a new one-off store per type.
+        let lotMediaStore;
+        if(!db.objectStoreNames.contains(LOT_MEDIA)){
+          lotMediaStore = db.createObjectStore(LOT_MEDIA,{keyPath:'mediaId'});
+          lotMediaStore.createIndex('draftId','draftId',{unique:false});
+          lotMediaStore.createIndex('type','type',{unique:false});
+          lotMediaStore.createIndex('draftId_type',['draftId','type'],{unique:false});
+          lotMediaStore.createIndex('draftId_type_sequence',['draftId','type','sequence'],{unique:false});
+          lotMediaStore.createIndex('createdAt','createdAt',{unique:false});
+        }else{
+          lotMediaStore = tx.objectStore(LOT_MEDIA);
+        }
+
+        // One-time copy of any existing v3 siteMedia record(s) into lotMedia
+        // as {type:'SITE_DIAGRAM', sequence:1}. Guarded by oldVersion so a
+        // later upgrade (v4 -> v5+, once lotMedia is the live store and
+        // siteMedia is stale) never re-runs this and stomps real data.
+        if(event.oldVersion < 4 && db.objectStoreNames.contains(SITE_MEDIA)){
+          migrateSiteMediaToLotMedia(tx.objectStore(SITE_MEDIA), lotMediaStore);
+        }
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
     });
     return dbPromise;
+  }
+
+  // Deterministic id so re-running this migration (interrupted upgrade,
+  // retried open, etc.) always overwrites the SAME lotMedia record instead
+  // of creating a duplicate "sequence 1" Site Diagram for the same draft.
+  function siteDiagramMediaId(draftId){ return 'media-' + draftId + '-sitediagram-1'; }
+
+  // Runs INSIDE the versionchange transaction - every per-record failure is
+  // caught locally so one corrupted/partial legacy record can never abort
+  // the whole upgrade (which would also roll back the new store creation
+  // above and strand the client retrying forever).
+  function migrateSiteMediaToLotMedia(siteMediaStore, lotMediaStore){
+    try{
+      const cursorReq = siteMediaStore.openCursor();
+      cursorReq.onsuccess = () => {
+        const cursor = cursorReq.result;
+        if(!cursor) return;
+        try{
+          const rec = cursor.value;
+          // Nothing worth migrating without a retained source photo - an
+          // empty/partial record here means no Site Diagram ever really
+          // existed for that draft, so there is nothing to lose.
+          if(rec && rec.draftId && rec.originalBlob){
+            const now = rec.updatedAt || new Date().toISOString();
+            lotMediaStore.put({
+              mediaId: siteDiagramMediaId(rec.draftId),
+              draftId: rec.draftId,
+              type: 'SITE_DIAGRAM',
+              sequence: 1,
+              onForm: !!rec.onForm,
+              deletedAt: null,
+              createdAt: now,
+              updatedAt: now,
+              sourceBlob: rec.originalBlob,
+              sourceWidth: rec.originalW || 0,
+              sourceHeight: rec.originalH || 0,
+              processedBlob: rec.cleanedBlob || null,
+              processedWidth: rec.cleanedW || 0,
+              processedHeight: rec.cleanedH || 0,
+              rotation: rec.angle || 0,
+              crop: rec.crop || null,
+              settings: rec.settings || null,
+              title: '',
+              description: ''
+            });
+          }
+        }catch(recordError){
+          console.warn('[offline] skipped one siteMedia record during v4 migration',recordError);
+        }
+        cursor.continue();
+      };
+      cursorReq.onerror = () => console.warn('[offline] siteMedia v4 migration cursor error',cursorReq.error);
+    }catch(startError){
+      console.warn('[offline] siteMedia v4 migration failed to start',startError);
+    }
   }
 
   async function txRequest(storeName, mode, action){
@@ -78,14 +160,83 @@
     return id;
   }
 
-  // Site Diagram media (original photo + cleaned HD result), stored as Blobs
-  // in their own object store, keyed one-per-draft so it rides along with
-  // the same offline draft and never bloats the generic autosave snapshot.
-  function saveSiteMedia(record){
-    return put(SITE_MEDIA, Object.assign({draftId:currentDraftId()}, record, {updatedAt:new Date().toISOString()}));
+  // ---- Generic lotMedia access (Phase A foundation) -----------------------
+  // Low-level primitives future evidence types (Site Photos, Ball Pen
+  // location diagrams, ...) build on. Nothing in the app calls these
+  // directly yet - Phase A intentionally ships no new UI - but they are the
+  // real, tested storage layer underneath saveSiteMedia/getSiteMedia below.
+  function getMediaRecord(mediaId){ return get(LOT_MEDIA, mediaId); }
+  function saveMediaRecord(record){ return put(LOT_MEDIA, record); }
+  async function getMediaByType(type){
+    const draftId = currentDraftId();
+    const rows = await txRequest(LOT_MEDIA,'readonly', s=>{
+      const range = IDBKeyRange.bound([draftId,type,-Infinity],[draftId,type,Infinity]);
+      return s.index('draftId_type_sequence').getAll(range);
+    });
+    return (rows || []).filter(r=>!r.deletedAt).sort((a,b)=>(a.sequence||0)-(b.sequence||0));
   }
-  function getSiteMedia(){
-    return get(SITE_MEDIA, currentDraftId());
+
+  // ---- Site Diagram media (back-compat shape) ------------------------------
+  // The Site Diagram module (index.html) still calls exactly these two
+  // functions with exactly the same field names it always has
+  // (angle/crop/settings/onForm/originalBlob/originalW/originalH/
+  // cleanedBlob/cleanedW/cleanedH) - it needed ZERO changes for this
+  // migration. Underneath, both now read/write the single
+  // {type:'SITE_DIAGRAM', sequence:1} record in lotMedia (the "main Site
+  // Diagram" for the current draft) instead of the old one-record-per-draft
+  // siteMedia store. siteMedia itself is no longer written to.
+  async function saveSiteMedia(record){
+    const draftId = currentDraftId();
+    const mediaId = siteDiagramMediaId(draftId);
+    const prior = await get(LOT_MEDIA, mediaId);
+    const now = new Date().toISOString();
+    const out = {
+      mediaId, draftId,
+      type:'SITE_DIAGRAM', sequence:1,
+      deletedAt:null,
+      createdAt:(prior && prior.createdAt) || now,
+      updatedAt: now,
+      onForm: !!record.onForm,
+      rotation: record.angle || 0,
+      crop: record.crop || null,
+      settings: record.settings || null,
+      title: (prior && prior.title) || '',
+      description: (prior && prior.description) || ''
+    };
+    // Mirror the old record's field-presence semantics exactly: the caller
+    // (doPersist in index.html) already merges with the previous
+    // getSiteMedia() result itself and explicitly deletes cleanedBlob/W/H on
+    // a brand-new original, so "key present vs absent" on the incoming
+    // `record` is the real signal, not a truthiness check.
+    if('originalBlob' in record){
+      out.sourceBlob = record.originalBlob;
+      out.sourceWidth = record.originalW;
+      out.sourceHeight = record.originalH;
+    }else if(prior){
+      out.sourceBlob = prior.sourceBlob; out.sourceWidth = prior.sourceWidth; out.sourceHeight = prior.sourceHeight;
+    }
+    if('cleanedBlob' in record){
+      out.processedBlob = record.cleanedBlob;
+      out.processedWidth = record.cleanedW;
+      out.processedHeight = record.cleanedH;
+    }
+    await put(LOT_MEDIA, out);
+    return out;
+  }
+  async function getSiteMedia(){
+    const rec = await get(LOT_MEDIA, siteDiagramMediaId(currentDraftId()));
+    if(!rec || rec.deletedAt) return null;
+    const out = {
+      draftId: rec.draftId,
+      updatedAt: rec.updatedAt,
+      angle: rec.rotation || 0,
+      crop: rec.crop || null,
+      settings: rec.settings || null,
+      onForm: !!rec.onForm
+    };
+    if(rec.sourceBlob){ out.originalBlob = rec.sourceBlob; out.originalW = rec.sourceWidth; out.originalH = rec.sourceHeight; }
+    if(rec.processedBlob){ out.cleanedBlob = rec.processedBlob; out.cleanedW = rec.processedWidth; out.cleanedH = rec.processedHeight; }
+    return out;
   }
 
   function fieldKey(el,index){ return el.id || el.name || ('field-' + index); }
@@ -410,7 +561,14 @@
 
   async function init(){
     ensureUi(); await openDb();
-    window.LotPackOffline = { getCurrentDraftId: currentDraftId, saveSiteMedia, getSiteMedia };
+    window.LotPackOffline = {
+      getCurrentDraftId: currentDraftId,
+      saveSiteMedia, getSiteMedia,
+      // Generic lotMedia primitives - not called anywhere yet (Phase A ships
+      // no new UI), reserved for the Multiple Site Diagrams / Site Photos /
+      // Ball Pen Location phases so they build on the same tested store.
+      getMediaRecord, saveMediaRecord, getMediaByType
+    };
     await requestPersistentStorage(); await restoreCurrentDraft();
     document.addEventListener('input',scheduleSave,true);
     document.addEventListener('change',scheduleSave,true);

@@ -4284,6 +4284,12 @@ async function emailReport(){
 
     return "";
   }
+  // Single authoritative "resolve the current main Site Diagram for
+  // printing" implementation. Exposed so other legacy print-sync scripts
+  // (V101) delegate here instead of keeping their own duplicate copy of
+  // this fallback chain - one source of truth today, and the one place
+  // that will need to change when multiple diagrams exist (Phase B).
+  window.v33GetDiagramData = getDiagramData;
 
   function fillV33SiteDiagramPrintPage(){
     setText("v33_pCustomer", val("sd_fCustomer"));
@@ -4847,21 +4853,15 @@ async function emailReport(){
 (function(){
   function byId(id){return document.getElementById(id);}
   function getDiagramDataV101(){
+    // Delegates to the single authoritative resolver (v33-full-report-site-
+    // diagram-js) instead of keeping its own duplicate copy of the same
+    // sd_diagramImg -> sd_out -> window.siteDiagrams[0] fallback chain, so
+    // there is one place that decides "what is the current main Site
+    // Diagram" for print, not two that could silently disagree.
     try{
-      var img = byId('sd_diagramImg') || byId('diagramImg');
-      if(img && img.src && img.src.indexOf('data:image') === 0) return img.src;
+      if(typeof window.v33GetDiagramData === 'function') return window.v33GetDiagramData() || '';
     }catch(e){}
-    try{
-      var out = byId('sd_out') || byId('out');
-      if(out && out.width && out.height) return out.toDataURL('image/png');
-    }catch(e){}
-    try{
-      if(window.siteDiagrams && window.siteDiagrams.length){
-        var d = window.siteDiagrams[0];
-        return d.redrawnTemplateData || d.originalData || "";
-      }
-    }catch(e){}
-    return "";
+    return '';
   }
 
   function syncPrintDiagramV101(){
