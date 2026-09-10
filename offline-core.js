@@ -2,10 +2,11 @@
   'use strict';
 
   const DB_NAME = 'colas-lotpack-offline';
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   const DRAFTS = 'drafts';
   const SUBMISSIONS = 'submissions';
   const META = 'meta';
+  const SITE_MEDIA = 'siteMedia';
   const CURRENT_KEY = 'colasLotPackCurrentDraftId';
   const CONFIG = window.LOTPACK_CONFIG || {};
   let dbPromise;
@@ -31,6 +32,10 @@
           store.createIndex('createdAt','createdAt',{unique:false});
         }
         if(!db.objectStoreNames.contains(META)) db.createObjectStore(META,{keyPath:'key'});
+        // One record per Lot Pack draft, holding the Site Diagram's retained
+        // original photo and cleaned HD result as Blobs (not base64) so they
+        // never bloat the generic autosaved form snapshot.
+        if(!db.objectStoreNames.contains(SITE_MEDIA)) db.createObjectStore(SITE_MEDIA,{keyPath:'draftId'});
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
@@ -71,6 +76,16 @@
     const id = uuid('draft-');
     localStorage.setItem(CURRENT_KEY,id);
     return id;
+  }
+
+  // Site Diagram media (original photo + cleaned HD result), stored as Blobs
+  // in their own object store, keyed one-per-draft so it rides along with
+  // the same offline draft and never bloats the generic autosave snapshot.
+  function saveSiteMedia(record){
+    return put(SITE_MEDIA, Object.assign({draftId:currentDraftId()}, record, {updatedAt:new Date().toISOString()}));
+  }
+  function getSiteMedia(){
+    return get(SITE_MEDIA, currentDraftId());
   }
 
   function fieldKey(el,index){ return el.id || el.name || ('field-' + index); }
@@ -270,6 +285,9 @@
     // manual overrides are restored (or, on a brand-new draft, so the
     // QVC/Bitumen defaults and auto-detection apply immediately).
     try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
+    // Restore the Site Diagram's original photo, rotation, crop and any
+    // committed cleaned HD result from their own media store.
+    try{ if(typeof window.restoreSiteDiagramMedia === 'function') await window.restoreSiteDiagramMedia(); }catch(_e){}
   }
 
   async function sha256(text){
@@ -391,7 +409,9 @@
   }
 
   async function init(){
-    ensureUi(); await openDb(); await requestPersistentStorage(); await restoreCurrentDraft();
+    ensureUi(); await openDb();
+    window.LotPackOffline = { getCurrentDraftId: currentDraftId, saveSiteMedia, getSiteMedia };
+    await requestPersistentStorage(); await restoreCurrentDraft();
     document.addEventListener('input',scheduleSave,true);
     document.addEventListener('change',scheduleSave,true);
     document.addEventListener('blur',scheduleSave,true);

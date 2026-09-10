@@ -960,6 +960,23 @@ html,body{width:100%;max-width:100%;overflow-x:hidden;overflow-x:clip;-webkit-te
 @media(max-width:900px){#site .sd-fieldgrid{grid-template-columns:1fr 1fr}#site .sd-twocol{grid-template-columns:1fr}#site .sd-controls{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){#site .sd-fieldgrid,#site .sd-controls{grid-template-columns:1fr}#site .sd-row>*{width:100%}#site .sd-card{padding:10px;margin:8px 0}}
 @media print{#site .sd-card:not(.sd-printcard){display:none!important}#site .sd-sheetwrap{padding:0;background:white;overflow:visible}#site .sd-sheet{box-shadow:none;transform:none!important;width:210mm!important;height:297mm!important;margin:0!important}.tabs,.actions,.top>.logo{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+/* v40 Site Diagram phase-1 UX: primary controls, before/after review, advanced drawer */
+#site .sd-btn[disabled]{opacity:.45;cursor:not-allowed}
+#site .sd-primary-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#site .sd-upload-btn{display:inline-flex;align-items:center;justify-content:center;text-align:center}
+#site .sd-file-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#site .sd-status-note{font-size:13px;color:#475467;margin-top:6px}
+#site .sd-quality{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;padding:5px 10px;border-radius:999px;margin-top:8px}
+#site .sd-quality.q-excellent{background:#ecfdf3;color:#027a48;border:1px solid #abefc6}
+#site .sd-quality.q-good{background:#fffaeb;color:#93700a;border:1px solid #fedf89}
+#site .sd-quality.q-needs{background:#fef3f2;color:#b42318;border:1px solid #fecdca}
+#site .sd-review{display:grid;grid-template-columns:1fr;gap:10px;margin-top:8px}
+#site .sd-review-pane{border:1px solid #d0d5dd;border-radius:10px;background:#fff;padding:6px}
+#site .sd-review-label{font-size:12px;font-weight:800;color:#344054;text-transform:uppercase;letter-spacing:.03em;padding:2px 4px 6px}
+#site .sd-advanced{border:1px solid #e4e7ec;border-radius:10px;margin-top:12px;padding:2px 10px 10px}
+#site .sd-advanced summary{cursor:pointer;padding:9px 2px;font-weight:700;color:#344054}
+#site .sd-crop-hint{font-size:12.5px;color:#475467;margin:6px 0}
+@media (min-width:900px) and (orientation:landscape){#site .sd-review{grid-template-columns:1fr 1fr}}
 
 
 @media print{
@@ -2427,24 +2444,40 @@ canvas,
     </div>
   </div>
   <div class="sd-card">
-    <b>2) Upload photo of completed site diagram</b>
-    <div class="sd-row" style="margin-top:10px"><input id="sd_file" type="file" accept="image/*"><button class="sd-btn secondary" id="sd_rotateBtn" type="button" disabled>Rotate 90°</button><button class="sd-btn light" id="sd_resetCropBtn" type="button" disabled>Reset crop</button></div>
-    <p style="font-size:13px;color:#475467">Drag the blue crop box around only the drawing area, then press <b>Clean Diagram + Put on Form</b>. This is the better first-file cleaner placed inside the full lot pack.</p>
-    <div id="sd_status" style="font-weight:bold;color:#00447c">Waiting for upload...</div>
+    <b>2) Site diagram photo</b>
+    <div class="sd-primary-row" style="margin-top:10px">
+      <label class="sd-btn sd-upload-btn" for="sd_file">Take Photo / Upload</label>
+      <input class="sd-file-hidden" id="sd_file" type="file" accept="image/*">
+      <button class="sd-btn" id="sd_autoCleanBtn" type="button" disabled>Auto Clean</button>
+      <button class="sd-btn secondary" id="sd_rotateBtn" type="button" disabled>Rotate 90&deg;</button>
+      <button class="sd-btn light" id="sd_cropToggleBtn" type="button" disabled>Adjust Crop</button>
+      <button class="sd-btn light" id="sd_undoBtn" type="button" disabled>Undo</button>
+    </div>
+    <div id="sd_status" style="font-weight:bold;color:#00447c;margin-top:8px">Waiting for upload...</div>
+    <div id="sd_quality" class="sd-quality" style="display:none"></div>
   </div>
-  <div class="sd-twocol">
-    <div class="sd-card"><b>3) Crop drawing area</b><div class="sd-canvasbox" style="margin-top:8px"><canvas id="sd_src"></canvas></div></div>
-    <div class="sd-card"><b>4) Clean result</b><div class="sd-canvasbox" style="margin-top:8px"><canvas id="sd_out"></canvas></div></div>
+  <div class="sd-card" id="sd_cropCard" style="display:none">
+    <b>3) Adjust crop</b>
+    <p class="sd-crop-hint">Drag the blue box around only the drawing area. A likely crop is proposed automatically where confident.</p>
+    <div class="sd-canvasbox" style="margin-top:6px"><canvas id="sd_src"></canvas></div>
+    <div class="sd-row" style="margin-top:10px"><button class="sd-btn light" id="sd_resetCropBtn" type="button" disabled>Reset crop</button><button class="sd-btn" id="sd_applyCropBtn" type="button">Done</button></div>
   </div>
   <div class="sd-card">
-    <b>Cleanup controls</b>
-    <div class="sd-controls" style="margin-top:8px">
-      <div><label>Sensitivity <span id="sd_sensVal">24</span></label><input id="sd_sens" type="range" min="5" max="70" value="24"></div>
-      <div><label>Background flatten <span id="sd_bgVal">34</span></label><input id="sd_bg" type="range" min="8" max="80" value="34"></div>
-      <div><label>Ink darken <span id="sd_darkVal">85</span></label><input id="sd_dark" type="range" min="20" max="140" value="85"></div>
-      <div><label>Noise removal <span id="sd_noiseVal">1</span></label><input id="sd_noise" type="range" min="0" max="3" value="1"></div>
+    <b>4) Review</b>
+    <div class="sd-review" id="sd_reviewWrap">
+      <div class="sd-review-pane"><div class="sd-review-label">Original</div><div class="sd-canvasbox"><canvas id="sd_beforeView"></canvas></div></div>
+      <div class="sd-review-pane"><div class="sd-review-label">Cleaned</div><div class="sd-canvasbox"><canvas id="sd_out"></canvas></div></div>
     </div>
-    <div class="sd-row" style="margin-top:12px"><button class="sd-btn" id="sd_cleanBtn" type="button" disabled>Clean Diagram + Put on Form</button><button class="sd-btn secondary" id="sd_printBtn" type="button">Preview / Print PDF</button><button class="sd-btn secondary" id="sd_downloadPng" type="button" disabled>Download Clean Diagram PNG</button></div>
+    <div class="sd-row" style="margin-top:12px"><button class="sd-btn" id="sd_cleanBtn" type="button" disabled>Use Clean Diagram</button><button class="sd-btn secondary" id="sd_printBtn" type="button">Preview / Print PDF</button><button class="sd-btn secondary" id="sd_downloadPng" type="button" disabled>Download Clean Diagram PNG</button></div>
+    <details class="sd-advanced">
+      <summary>Advanced</summary>
+      <div class="sd-controls" style="margin-top:8px">
+        <div><label>Sensitivity <span id="sd_sensVal">24</span></label><input id="sd_sens" type="range" min="5" max="70" value="24"></div>
+        <div><label>Background flatten <span id="sd_bgVal">34</span></label><input id="sd_bg" type="range" min="8" max="80" value="34"></div>
+        <div><label>Ink darken <span id="sd_darkVal">85</span></label><input id="sd_dark" type="range" min="20" max="140" value="85"></div>
+        <div><label>Noise removal <span id="sd_noiseVal">1</span></label><input id="sd_noise" type="range" min="0" max="3" value="1"></div>
+      </div>
+    </details>
   </div>
   <div class="sd-card sd-printcard">
     <b>5) Full worksheet form preview</b>
@@ -2465,12 +2498,18 @@ canvas,
   </div>
 <script>
 (function(){
-const VERSION='v15-full-lot-pack-phone-first';
+const VERSION='v40-site-diagram-hd-phase1';
 const $=id=>document.getElementById(id);
-const fileInput=$('sd_file'), src=$('sd_src'), out=$('sd_out'); if(!fileInput||!src||!out)return;
-const sctx=src.getContext('2d',{willReadFrequently:true}), octx=out.getContext('2d',{willReadFrequently:true});
+const fileInput=$('sd_file'), src=$('sd_src'), out=$('sd_out'), beforeView=$('sd_beforeView');
+if(!fileInput||!src||!out)return;
+const sctx=src.getContext('2d',{willReadFrequently:true});
+const octx=out.getContext('2d',{willReadFrequently:true});
+const bctx=beforeView?beforeView.getContext('2d',{willReadFrequently:true}):null;
 const statusEl=$('sd_status'), rotateBtn=$('sd_rotateBtn'), resetCropBtn=$('sd_resetCropBtn'), cleanBtn=$('sd_cleanBtn'), printBtn=$('sd_printBtn'), downloadPng=$('sd_downloadPng');
+const autoCleanBtn=$('sd_autoCleanBtn'), cropToggleBtn=$('sd_cropToggleBtn'), undoBtn=$('sd_undoBtn'), applyCropBtn=$('sd_applyCropBtn'), cropCard=$('sd_cropCard');
+const qualityEl=$('sd_quality');
 const sens=$('sd_sens'), bg=$('sd_bg'), dark=$('sd_dark'), noise=$('sd_noise'), diagramImg=$('sd_diagramImg'), ph=$('sd_ph');
+
 function status(t,ok){statusEl.innerHTML=(ok?'<span style="color:#027a48">':'')+t+(ok?'</span>':'');}
 function getVal(id){const el=$(id); return el ? (('value' in el) ? el.value : el.textContent) : '';}
 function setInput(id,val){const el=$(id); if(el) el.value = val || '';}
@@ -2494,21 +2533,526 @@ function updateForm(){
 ['Customer','Job','Loc','Lot','Date','Prep'].forEach(k=>{const e=$('sd_f'+k);if(e)e.addEventListener('input',updateForm)});$('sd_northSel').addEventListener('change',updateForm);
 function scaleSheet(){const wrap=$('sd_sheetWrap'), sheet=$('sd_sheet'); if(!wrap||!sheet)return; sheet.style.transform='scale(1)'; sheet.style.height='1273px'; if(window.matchMedia('print').matches)return; const avail=wrap.clientWidth-16; const scale=Math.min(1,avail/900); sheet.style.transform='scale('+scale+')'; wrap.style.height=(1273*scale+18)+'px';}
 window.addEventListener('resize',scaleSheet); setTimeout(syncSiteDiagramFromCover,200);
-['sens','bg','dark','noise'].forEach(id=>$("sd_"+id).addEventListener('input',()=>{ $('sd_'+id+'Val').textContent=$('sd_'+id).value; if(img) clean(false); }));
-let img=null, angle=0, crop={x:80,y:80,w:500,h:350}, dragging=false, mode='move', start={x:0,y:0}, startCrop=null;
-const workCanvas=document.createElement('canvas'), wctx=workCanvas.getContext('2d',{willReadFrequently:true});
-fileInput.addEventListener('change',e=>{const f=e.target.files[0]; if(!f)return; const url=URL.createObjectURL(f); const im=new Image(); im.onload=()=>{img=im; angle=0; drawSource(true); rotateBtn.disabled=resetCropBtn.disabled=cleanBtn.disabled=false; status('Image loaded. Crop the drawing area, then clean it.',true);}; im.src=url;});
-rotateBtn.onclick=()=>{angle=(angle+90)%360;drawSource(true)}; resetCropBtn.onclick=()=>drawSource(true); printBtn.onclick=()=>{updateForm();window.print()};
-function buildWorkCanvas(){let iw=img.naturalWidth,ih=img.naturalHeight,rw=iw,rh=ih;if(angle%180){rw=ih;rh=iw}const maxSide=2600,ws=Math.min(1,maxSide/Math.max(rw,rh));workCanvas.width=Math.round(rw*ws);workCanvas.height=Math.round(rh*ws);wctx.save();wctx.clearRect(0,0,workCanvas.width,workCanvas.height);wctx.scale(ws,ws);if(angle===90){wctx.translate(ih,0);wctx.rotate(Math.PI/2)}else if(angle===180){wctx.translate(iw,ih);wctx.rotate(Math.PI)}else if(angle===270){wctx.translate(0,iw);wctx.rotate(3*Math.PI/2)}wctx.drawImage(img,0,0);wctx.restore()}
-function drawSource(reset){if(!img)return;buildWorkCanvas();const maxW=Math.min(1100,window.innerWidth-50),viewScale=Math.min(1,maxW/workCanvas.width);src.width=Math.round(workCanvas.width*viewScale);src.height=Math.round(workCanvas.height*viewScale);sctx.clearRect(0,0,src.width,src.height);sctx.drawImage(workCanvas,0,0,src.width,src.height);if(reset)crop={x:src.width*.08,y:src.height*.28,w:src.width*.84,h:src.height*.58};drawCrop()}
-function drawCrop(){sctx.save();sctx.strokeStyle='#0066cc';sctx.lineWidth=3;sctx.setLineDash([8,5]);sctx.strokeRect(crop.x,crop.y,crop.w,crop.h);sctx.setLineDash([]);sctx.fillStyle='rgba(0,102,204,.08)';sctx.fillRect(crop.x,crop.y,crop.w,crop.h);sctx.fillStyle='#0066cc';[[crop.x,crop.y],[crop.x+crop.w,crop.y],[crop.x,crop.y+crop.h],[crop.x+crop.w,crop.y+crop.h]].forEach(p=>sctx.fillRect(p[0]-7,p[1]-7,14,14));sctx.restore()}
-function pos(ev){const r=src.getBoundingClientRect(),t=ev.touches?ev.touches[0]:ev;return{x:(t.clientX-r.left)*src.width/r.width,y:(t.clientY-r.top)*src.height/r.height}}
-src.addEventListener('pointerdown',ev=>{if(!img)return;src.setPointerCapture(ev.pointerId);const p=pos(ev);start=p;startCrop={...crop};const near=(x,y)=>Math.abs(p.x-x)<25&&Math.abs(p.y-y)<25;if(near(crop.x,crop.y))mode='nw';else if(near(crop.x+crop.w,crop.y))mode='ne';else if(near(crop.x,crop.y+crop.h))mode='sw';else if(near(crop.x+crop.w,crop.y+crop.h))mode='se';else mode='move';dragging=true});
-src.addEventListener('pointermove',ev=>{if(!dragging)return;const p=pos(ev),dx=p.x-start.x,dy=p.y-start.y;crop={...startCrop};if(mode==='move'){crop.x+=dx;crop.y+=dy}else{if(mode.includes('n')){crop.y+=dy;crop.h-=dy}if(mode.includes('s'))crop.h+=dy;if(mode.includes('w')){crop.x+=dx;crop.w-=dx}if(mode.includes('e'))crop.w+=dx}crop.w=Math.max(40,crop.w);crop.h=Math.max(40,crop.h);crop.x=Math.max(0,Math.min(src.width-crop.w,crop.x));crop.y=Math.max(0,Math.min(src.height-crop.h,crop.y));drawSource(false)}); src.addEventListener('pointerup',()=>dragging=false);
-function boxBlurGray(gray,w,h,r){const tmp=new Float32Array(w*h),outA=new Float32Array(w*h),div=2*r+1;for(let y=0;y<h;y++){let sum=0;for(let x=-r;x<=r;x++)sum+=gray[y*w+Math.min(w-1,Math.max(0,x))];for(let x=0;x<w;x++){tmp[y*w+x]=sum/div;const x1=Math.max(0,x-r),x2=Math.min(w-1,x+r+1);sum+=gray[y*w+x2]-gray[y*w+x1]}}for(let x=0;x<w;x++){let sum=0;for(let y=-r;y<=r;y++)sum+=tmp[Math.min(h-1,Math.max(0,y))*w+x];for(let y=0;y<h;y++){outA[y*w+x]=sum/div;const y1=Math.max(0,y-r),y2=Math.min(h-1,y+r+1);sum+=tmp[y2*w+x]-tmp[y1*w+x]}}return outA}
-cleanBtn.onclick=()=>clean(true);
-function clean(updatePreview){if(!img)return;const rx=workCanvas.width/src.width,ry=workCanvas.height/src.height,sx=Math.round(crop.x*rx),sy=Math.round(crop.y*ry),sw=Math.round(crop.w*rx),sh=Math.round(crop.h*ry);const maxOut=2200,scale=Math.min(1,maxOut/Math.max(sw,sh)),cw=Math.round(sw*scale),ch=Math.round(sh*scale);const tmp=document.createElement('canvas');tmp.width=cw;tmp.height=ch;const tctx=tmp.getContext('2d',{willReadFrequently:true});tctx.drawImage(workCanvas,sx,sy,sw,sh,0,0,cw,ch);const im=tctx.getImageData(0,0,cw,ch),d=im.data,gray=new Float32Array(cw*ch),satArr=new Float32Array(cw*ch);for(let i=0,p=0;i<d.length;i+=4,p++){const r=d[i],g=d[i+1],b=d[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);gray[p]=.299*r+.587*g+.114*b;satArr[p]=mx-mn}const background=boxBlurGray(gray,cw,ch,Number(bg.value)),threshold=Number(sens.value),inkBoost=Number(dark.value),n=Number(noise.value),mask=new Uint8Array(cw*ch);for(let p=0;p<gray.length;p++){mask[p]=(background[p]-gray[p]+satArr[p]*.42)>threshold?1:0}if(n>0){for(let pass=0;pass<n;pass++){const copy=mask.slice();for(let y=1;y<ch-1;y++)for(let x=1;x<cw-1;x++){const p=y*cw+x;let c=0;for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)c+=copy[p+yy*cw+xx];if(c<=2)mask[p]=0}}}out.width=cw;out.height=ch;const res=octx.createImageData(cw,ch),rd=res.data;for(let p=0,i=0;p<mask.length;p++,i+=4){if(mask[p]){const strength=Math.min(255,inkBoost+(background[p]-gray[p])*4),v=Math.max(0,255-strength);rd[i]=rd[i+1]=rd[i+2]=v;rd[i+3]=255}else{rd[i]=rd[i+1]=rd[i+2]=255;rd[i+3]=255}}octx.putImageData(res,0,0);downloadPng.disabled=false;const data=out.toDataURL('image/png');window.siteDiagrams=[{name:'Clean Diagram',originalData:data,redrawnTemplateData:data,cleanRedrawReady:true}];if(updatePreview){diagramImg.src=data;ph.style.display='none';status('Clean diagram is now on the full worksheet form below.',true);scaleSheet()}}
+
+/* ---------------------------------------------------------------------
+ * Resolution budget (Phase 1 - documented in the audit/report):
+ *   INTERACTIVE_MAX - live crop/preview/slider working resolution (cheap,
+ *                      recomputed often while the user is adjusting things)
+ *   ORIGINAL_MAX     - retained "original" ceiling, applied ONCE at upload
+ *                      and never re-applied or overwritten (was 2600px
+ *                      before this change; this is the safe-but-generous
+ *                      replacement for the true camera-native photo)
+ *   FINAL_MAX         - one-off HD render, computed only when the user
+ *                      presses "Use Clean Diagram" - never during live
+ *                      interaction
+ *   THUMB_MAX          - tiny analysis copy for auto-crop + quality signals
+ * ------------------------------------------------------------------- */
+const INTERACTIVE_MAX = 1400;
+const ORIGINAL_MAX = 3200;
+const FINAL_MAX = 3200;
+const THUMB_MAX = 480;
+
+const workCanvas=document.createElement('canvas');
+
+let state = {
+  originalCanvas:null,   // retained original, UNROTATED, <=ORIGINAL_MAX longest side
+  angle:0,
+  crop:null,             // fractions {x,y,w,h} of the ROTATED bounds, 0..1
+  onForm:false,           // true once "Use Clean Diagram" has been pressed
+  history:[]              // small undo stack of {angle,crop}, rotate/crop only
+};
+let lastQualitySample=null, lastAutoCropConfidence=null;
+
+function defaultCrop(){ return {x:0.08,y:0.28,w:0.84,h:0.58}; }
+
+function pushHistory(){
+  state.history.push({angle:state.angle, crop:state.crop?{...state.crop}:null});
+  if(state.history.length>10) state.history.shift();
+  undoBtn.disabled=false;
+}
+
+function setButtonsEnabled(hasImage){
+  rotateBtn.disabled=resetCropBtn.disabled=cleanBtn.disabled=autoCleanBtn.disabled=cropToggleBtn.disabled=!hasImage;
+}
+
+function rotatedSize(w,h,angle){ return (angle%180) ? {w:h,h:w} : {w:w,h:h}; }
+
+// Draws state.originalCanvas, rotated by state.angle, into targetCanvas at
+// up to maxSide longest edge. Returns {w,h} actually drawn.
+function renderRotated(targetCanvas, maxSide){
+  const oc=state.originalCanvas; if(!oc) return {w:0,h:0};
+  const iw=oc.width, ih=oc.height;
+  const rb=rotatedSize(iw,ih,state.angle);
+  const scale=Math.min(1, maxSide/Math.max(rb.w,rb.h));
+  const tw=Math.max(1,Math.round(rb.w*scale)), th=Math.max(1,Math.round(rb.h*scale));
+  targetCanvas.width=tw; targetCanvas.height=th;
+  const tctx=targetCanvas.getContext('2d',{willReadFrequently:true});
+  tctx.save();
+  tctx.clearRect(0,0,tw,th);
+  tctx.scale(scale,scale);
+  if(state.angle===90){tctx.translate(ih,0);tctx.rotate(Math.PI/2);}
+  else if(state.angle===180){tctx.translate(iw,ih);tctx.rotate(Math.PI);}
+  else if(state.angle===270){tctx.translate(0,iw);tctx.rotate(3*Math.PI/2);}
+  tctx.drawImage(oc,0,0);
+  tctx.restore();
+  return {w:tw,h:th};
+}
+
+function cropRectPx(w,h){
+  const c=state.crop || defaultCrop();
+  return {
+    x:Math.round(c.x*w), y:Math.round(c.y*h),
+    w:Math.max(20,Math.round(c.w*w)), h:Math.max(20,Math.round(c.h*h))
+  };
+}
+
+/* ---------------- crop UI (interactive resolution) ---------------- */
+let dragging=false, mode='move', start={x:0,y:0}, startCropPx=null;
+
+function drawSource(){
+  renderRotated(workCanvas, INTERACTIVE_MAX);
+  const maxW=Math.min(1100,window.innerWidth-50), viewScale=Math.min(1, maxW/Math.max(1,workCanvas.width));
+  src.width=Math.round(workCanvas.width*viewScale);
+  src.height=Math.round(workCanvas.height*viewScale);
+  refreshCropView();
+}
+function refreshCropView(){
+  sctx.clearRect(0,0,src.width,src.height);
+  sctx.drawImage(workCanvas,0,0,src.width,src.height);
+  drawCropOverlay();
+}
+function drawCropOverlay(){
+  const r=cropRectPx(src.width,src.height);
+  sctx.save();
+  sctx.strokeStyle='#0066cc'; sctx.lineWidth=3; sctx.setLineDash([8,5]);
+  sctx.strokeRect(r.x,r.y,r.w,r.h);
+  sctx.setLineDash([]);
+  sctx.fillStyle='rgba(0,102,204,.08)'; sctx.fillRect(r.x,r.y,r.w,r.h);
+  sctx.fillStyle='#0066cc';
+  [[r.x,r.y],[r.x+r.w,r.y],[r.x,r.y+r.h],[r.x+r.w,r.y+r.h]].forEach(p=>sctx.fillRect(p[0]-7,p[1]-7,14,14));
+  sctx.restore();
+}
+function pos(ev){const r=src.getBoundingClientRect(),t=ev.touches?ev.touches[0]:ev;return{x:(t.clientX-r.left)*src.width/r.width,y:(t.clientY-r.top)*src.height/r.height};}
+src.addEventListener('pointerdown',ev=>{
+  if(!state.originalCanvas) return;
+  src.setPointerCapture(ev.pointerId);
+  const p=pos(ev); start=p; startCropPx=cropRectPx(src.width,src.height);
+  const near=(x,y)=>Math.abs(p.x-x)<25&&Math.abs(p.y-y)<25;
+  if(near(startCropPx.x,startCropPx.y))mode='nw';
+  else if(near(startCropPx.x+startCropPx.w,startCropPx.y))mode='ne';
+  else if(near(startCropPx.x,startCropPx.y+startCropPx.h))mode='sw';
+  else if(near(startCropPx.x+startCropPx.w,startCropPx.y+startCropPx.h))mode='se';
+  else mode='move';
+  dragging=true;
+});
+src.addEventListener('pointermove',ev=>{
+  if(!dragging)return;
+  const p=pos(ev), dx=p.x-start.x, dy=p.y-start.y;
+  let r={...startCropPx};
+  if(mode==='move'){ r.x+=dx; r.y+=dy; }
+  else{
+    if(mode.includes('n')){ r.y+=dy; r.h-=dy; }
+    if(mode.includes('s')) r.h+=dy;
+    if(mode.includes('w')){ r.x+=dx; r.w-=dx; }
+    if(mode.includes('e')) r.w+=dx;
+  }
+  r.w=Math.max(40,r.w); r.h=Math.max(40,r.h);
+  r.x=Math.max(0,Math.min(src.width-r.w,r.x));
+  r.y=Math.max(0,Math.min(src.height-r.h,r.y));
+  state.crop={x:r.x/src.width,y:r.y/src.height,w:r.w/src.width,h:r.h/src.height};
+  refreshCropView();
+});
+src.addEventListener('pointerup',()=>{
+  if(dragging){ dragging=false; pushHistory(); refreshAfterEdit(); }
+});
+
+function refreshAfterEdit(){
+  renderBeforeView();
+  runAutoCleanPreview(false);
+  persistState({});
+}
+
+/* ---------------- primary control buttons ---------------- */
+rotateBtn.onclick=()=>{
+  if(!state.originalCanvas) return;
+  pushHistory();
+  state.angle=(state.angle+90)%360;
+  state.crop=defaultCrop();
+  drawSource();
+  refreshAfterEdit();
+};
+resetCropBtn.onclick=()=>{
+  if(!state.originalCanvas) return;
+  pushHistory();
+  state.crop=defaultCrop();
+  drawSource();
+  refreshAfterEdit();
+};
+undoBtn.onclick=()=>{
+  const prev=state.history.pop();
+  if(!prev) return;
+  state.angle=prev.angle;
+  state.crop=prev.crop||defaultCrop();
+  undoBtn.disabled=state.history.length===0;
+  drawSource();
+  refreshAfterEdit();
+};
+cropToggleBtn.onclick=()=>{
+  if(!state.originalCanvas) return;
+  const show=cropCard.style.display==='none';
+  cropCard.style.display=show?'':'none';
+  if(show) drawSource();
+};
+applyCropBtn.onclick=()=>{
+  cropCard.style.display='none';
+  pushHistory();
+  refreshAfterEdit();
+};
+printBtn.onclick=()=>{updateForm();window.print()};
+
+/* ---------------- before/after review ---------------- */
+function renderBeforeView(){
+  if(!bctx || !state.originalCanvas) return;
+  renderRotated(workCanvas, INTERACTIVE_MAX);
+  const r=cropRectPx(workCanvas.width, workCanvas.height);
+  beforeView.width=r.w; beforeView.height=r.h;
+  bctx.clearRect(0,0,r.w,r.h);
+  bctx.drawImage(workCanvas, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+}
+
+/* ---------------- safe auto-crop (lightweight, no CV dependency) ----------------
+ * Heuristic: paper is usually the brightest, least-saturated large region
+ * in the photo. We build a coarse "paper-likely" mask on a small thumbnail,
+ * then take a row/column projection bounding box. If the detected region
+ * is too small, too large, or too thin to be trustworthy, we bail out and
+ * leave the crop at its existing default - never forcing a bad guess. */
+function proposeAutoCrop(){
+  if(!state.originalCanvas) return null;
+  let thumb=document.createElement('canvas');
+  const size=renderRotated(thumb, THUMB_MAX);
+  if(!size.w||!size.h){ thumb=null; return null; }
+  const tctx=thumb.getContext('2d',{willReadFrequently:true});
+  const im=tctx.getImageData(0,0,size.w,size.h);
+  const d=im.data;
+  const n=size.w*size.h;
+  const gray=new Float32Array(n), sat=new Float32Array(n);
+  for(let i=0,p=0;i<d.length;i+=4,p++){
+    const r=d[i],g=d[i+1],b=d[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+    gray[p]=.299*r+.587*g+.114*b; sat[p]=mx-mn;
+  }
+  thumb.width=0; thumb.height=0; thumb=null;
+  let sumGray=0; for(let p=0;p<n;p++) sumGray+=gray[p];
+  const meanGray=sumGray/n;
+  const mask=new Uint8Array(n);
+  let maskCount=0;
+  for(let p=0;p<n;p++){ if(gray[p]>meanGray*0.82 && sat[p]<60){ mask[p]=1; maskCount++; } }
+  if(maskCount < n*0.08) return null;
+  const rowSum=new Int32Array(size.h), colSum=new Int32Array(size.w);
+  for(let y=0;y<size.h;y++) for(let x=0;x<size.w;x++){ if(mask[y*size.w+x]){ rowSum[y]++; colSum[x]++; } }
+  const rowThresh=Math.max(2,size.w*0.12), colThresh=Math.max(2,size.h*0.12);
+  let top=0,bottom=size.h-1,left=0,right=size.w-1;
+  while(top<size.h && rowSum[top]<rowThresh) top++;
+  while(bottom>top && rowSum[bottom]<rowThresh) bottom--;
+  while(left<size.w && colSum[left]<colThresh) left++;
+  while(right>left && colSum[right]<colThresh) right--;
+  const bw=right-left, bh=bottom-top;
+  if(bw<size.w*0.15 || bh<size.h*0.15) return null;
+  const boxArea=bw*bh, areaFrac=boxArea/(size.w*size.h);
+  if(areaFrac<0.12 || areaFrac>0.95) return null;
+  let inside=0;
+  for(let y=top;y<=bottom;y++) for(let x=left;x<=right;x++) if(mask[y*size.w+x]) inside++;
+  const confidence=inside/Math.max(1,boxArea);
+  return { crop:{x:left/size.w,y:top/size.h,w:bw/size.w,h:bh/size.h}, confidence };
+}
+function applyAutoCropIfConfident(){
+  const res=proposeAutoCrop();
+  lastAutoCropConfidence = res ? res.confidence : null;
+  if(res && res.confidence>=0.55){
+    state.crop=res.crop;
+    return true;
+  }
+  state.crop=defaultCrop();
+  return false;
+}
+
+/* ---------------- quality signals (photo quality only - not a claim
+   about whether the drawing itself is correct) ---------------- */
+function sampleQuality(gray,w,h){
+  let minV=255,maxV=0;
+  const n=w*h;
+  for(let p=0;p<n;p++){ const v=gray[p]; if(v<minV)minV=v; if(v>maxV)maxV=v; }
+  const contrastRange=maxV-minV;
+  let edgeEnergy=0, edgeSamples=0;
+  const stepY=Math.max(1,Math.floor(h/220)), stepX=Math.max(1,Math.floor(w/220));
+  for(let y=stepY;y<h-stepY;y+=stepY){
+    for(let x=stepX;x<w-stepX;x+=stepX){
+      const p=y*w+x;
+      const lap=4*gray[p]-gray[p-1]-gray[p+1]-gray[p-w]-gray[p+w];
+      edgeEnergy+=lap*lap; edgeSamples++;
+    }
+  }
+  const blurScore=edgeSamples?Math.sqrt(edgeEnergy/edgeSamples):0;
+  return {contrastRange,blurScore};
+}
+function computeQualityLabel(q, cropNativeLongSide, cropConfidence){
+  let score=0;
+  if(cropNativeLongSide>=1800) score+=2; else if(cropNativeLongSide>=1000) score+=1;
+  if(q.blurScore>=18) score+=2; else if(q.blurScore>=8) score+=1;
+  if(q.contrastRange>=110) score+=2; else if(q.contrastRange>=60) score+=1;
+  if(typeof cropConfidence==='number'){ if(cropConfidence>=0.7) score+=1; else if(cropConfidence<0.4) score-=1; }
+  if(score>=6) return {label:'Excellent',cls:'q-excellent'};
+  if(score>=3) return {label:'Good',cls:'q-good'};
+  return {label:'Needs adjustment',cls:'q-needs'};
+}
+function updateQualityBadge(){
+  if(!qualityEl || !lastQualitySample || !state.originalCanvas) return;
+  const r=cropRectPx(state.originalCanvas.width, state.originalCanvas.height);
+  const nativeLongSide=Math.max(r.w,r.h);
+  const q=computeQualityLabel(lastQualitySample, nativeLongSide, lastAutoCropConfidence);
+  qualityEl.className='sd-quality '+q.cls;
+  qualityEl.textContent='Photo quality: '+q.label;
+  qualityEl.style.display='inline-flex';
+}
+
+/* ---------------- cleaning algorithm ----------------
+ * Same background-flatten + saturation-aware threshold + despeckle
+ * approach as before (not rewritten), refactored to: (a) work at any
+ * target resolution via a source canvas already rendered at that
+ * resolution, and (b) release each large buffer as soon as it is no
+ * longer needed, so only ONE HD-sized pass is ever resident at a time. */
+function boxBlurGray(gray,w,h,r,tmpBuf,outBuf){
+  const tmp=tmpBuf||new Float32Array(w*h), outA=outBuf||new Float32Array(w*h), div=2*r+1;
+  for(let y=0;y<h;y++){let sum=0;for(let x=-r;x<=r;x++)sum+=gray[y*w+Math.min(w-1,Math.max(0,x))];for(let x=0;x<w;x++){tmp[y*w+x]=sum/div;const x1=Math.max(0,x-r),x2=Math.min(w-1,x+r+1);sum+=gray[y*w+x2]-gray[y*w+x1]}}
+  for(let x=0;x<w;x++){let sum=0;for(let y=-r;y<=r;y++)sum+=tmp[Math.min(h-1,Math.max(0,y))*w+x];for(let y=0;y<h;y++){outA[y*w+x]=sum/div;const y1=Math.max(0,y-r),y2=Math.min(h-1,y+r+1);sum+=tmp[y2*w+x]-tmp[y1*w+x]}}
+  return outA;
+}
+function currentSettings(){ return {sens:sens.value,bg:bg.value,dark:dark.value,noise:noise.value}; }
+
+function runClean(sourceCanvas, cropPx, maxSide, settings){
+  const scale=Math.min(1, maxSide/Math.max(cropPx.w,cropPx.h));
+  const cw=Math.max(1,Math.round(cropPx.w*scale)), ch=Math.max(1,Math.round(cropPx.h*scale));
+  let tmpCanvas=document.createElement('canvas');
+  tmpCanvas.width=cw; tmpCanvas.height=ch;
+  let tctx=tmpCanvas.getContext('2d',{willReadFrequently:true});
+  tctx.drawImage(sourceCanvas, cropPx.x, cropPx.y, cropPx.w, cropPx.h, 0, 0, cw, ch);
+  let im=tctx.getImageData(0,0,cw,ch);
+  let d=im.data;
+  const n=cw*ch;
+  let gray=new Float32Array(n), satArr=new Float32Array(n);
+  for(let i=0,p=0;i<d.length;i+=4,p++){
+    const r=d[i],g=d[i+1],b=d[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+    gray[p]=.299*r+.587*g+.114*b; satArr[p]=mx-mn;
+  }
+  // raw crop pixels no longer needed - release before the heavier passes
+  im=null; d=null;
+  tmpCanvas.width=0; tmpCanvas.height=0; tmpCanvas=null; tctx=null;
+
+  const qualitySample=sampleQuality(gray,cw,ch);
+
+  const scratch=new Float32Array(n);
+  const background=boxBlurGray(gray,cw,ch,Number(settings.bg),scratch,null);
+  const threshold=Number(settings.sens), inkBoost=Number(settings.dark), noisePasses=Number(settings.noise);
+  const mask=new Uint8Array(n);
+  for(let p=0;p<n;p++) mask[p]=((background[p]-gray[p])+satArr[p]*.42) > threshold ? 1 : 0;
+  satArr=null; scratch.fill(0);
+
+  if(noisePasses>0){
+    for(let pass=0;pass<noisePasses;pass++){
+      const copy=mask.slice();
+      for(let y=1;y<ch-1;y++) for(let x=1;x<cw-1;x++){
+        const p=y*cw+x; let c=0;
+        for(let yy=-1;yy<=1;yy++) for(let xx=-1;xx<=1;xx++) c+=copy[p+yy*cw+xx];
+        if(c<=2) mask[p]=0;
+      }
+    }
+  }
+
+  out.width=cw; out.height=ch;
+  const res=octx.createImageData(cw,ch);
+  const rd=res.data;
+  for(let p=0,i=0;p<mask.length;p++,i+=4){
+    if(mask[p]){
+      const strength=Math.min(255, inkBoost+(background[p]-gray[p])*4);
+      const v=Math.max(0,255-strength);
+      rd[i]=rd[i+1]=rd[i+2]=v; rd[i+3]=255;
+    }else{
+      rd[i]=rd[i+1]=rd[i+2]=255; rd[i+3]=255;
+    }
+  }
+  octx.putImageData(res,0,0);
+  downloadPng.disabled=false;
+  return {qualitySample};
+}
+
+function runAutoCleanPreview(isInitial){
+  if(!state.originalCanvas) return;
+  renderRotated(workCanvas, INTERACTIVE_MAX);
+  const cropPx=cropRectPx(workCanvas.width, workCanvas.height);
+  const result=runClean(workCanvas, cropPx, INTERACTIVE_MAX, currentSettings());
+  lastQualitySample=result.qualitySample;
+  updateQualityBadge();
+  status(isInitial?'Auto Clean complete. Review the result below.':'Preview updated.', true);
+}
+autoCleanBtn.onclick=()=>runAutoCleanPreview(false);
+['sens','bg','dark','noise'].forEach(id=>$('sd_'+id).addEventListener('input',()=>{
+  $('sd_'+id+'Val').textContent=$('sd_'+id).value;
+  if(state.originalCanvas) runAutoCleanPreview(false);
+}));
+
+cleanBtn.onclick=async ()=>{
+  if(!state.originalCanvas) return;
+  cleanBtn.disabled=true;
+  status('Rendering HD diagram…', true);
+  await new Promise(r=>setTimeout(r,10));
+  let hdSource=document.createElement('canvas');
+  renderRotated(hdSource, FINAL_MAX);
+  const cropPx=cropRectPx(hdSource.width, hdSource.height);
+  const result=runClean(hdSource, cropPx, FINAL_MAX, currentSettings());
+  hdSource.width=0; hdSource.height=0; hdSource=null;
+  lastQualitySample=result.qualitySample;
+  updateQualityBadge();
+  const data=out.toDataURL('image/png');
+  window.siteDiagrams=[{name:'Clean Diagram',originalData:data,redrawnTemplateData:data,cleanRedrawReady:true}];
+  diagramImg.src=data;
+  ph.style.display='none';
+  state.onForm=true;
+  status('Clean diagram is now on the full worksheet form below.', true);
+  scaleSheet();
+  cleanBtn.disabled=false;
+  persistState({saveCleaned:true});
+};
 downloadPng.onclick=()=>{const a=document.createElement('a');a.download='clean-diagram-'+VERSION+'.png';a.href=out.toDataURL('image/png');a.click()};
+
+/* ---------------- upload ---------------- */
+fileInput.addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  status('Loading photo…', true);
+  const url=URL.createObjectURL(f);
+  const im=new Image();
+  im.onload=()=>{ URL.revokeObjectURL(url); buildRetainedOriginal(im); };
+  im.onerror=()=>{ URL.revokeObjectURL(url); status('Could not read that photo. Please try again.'); };
+  im.src=url;
+});
+function buildRetainedOriginal(im){
+  const iw=im.naturalWidth, ih=im.naturalHeight;
+  if(!iw||!ih){ status('That file did not look like a valid photo.'); return; }
+  const scale=Math.min(1, ORIGINAL_MAX/Math.max(iw,ih));
+  const rw=Math.max(1,Math.round(iw*scale)), rh=Math.max(1,Math.round(ih*scale));
+  const oc=document.createElement('canvas'); oc.width=rw; oc.height=rh;
+  oc.getContext('2d').drawImage(im,0,0,rw,rh);
+  im.src='';
+  state.originalCanvas=oc;
+  state.angle=0; state.onForm=false; state.history=[];
+  undoBtn.disabled=true;
+  setButtonsEnabled(true);
+  const autoCropped=applyAutoCropIfConfident();
+  drawSource();
+  renderBeforeView();
+  status(autoCropped ? 'Photo loaded. A crop was proposed automatically — adjust if needed.' : 'Photo loaded. Adjust the crop if needed, then review Auto Clean below.', true);
+  persistState({newOriginal:true});
+  runAutoCleanPreview(true);
+}
+
+/* ---------------- offline persistence ----------------
+ * Original photo + cleaned HD result are stored as Blobs in their own
+ * IndexedDB object store (via offline-core.js's window.LotPackOffline),
+ * one record per draft - never inside the generic autosaved form
+ * snapshot, so they cannot bloat every autosave/cloud-backup cycle. */
+function canvasToBlob(canvas, type, quality){
+  return new Promise(resolve=>{
+    if(canvas.toBlob){ canvas.toBlob(b=>resolve(b), type, quality); }
+    else{
+      const parts=canvas.toDataURL(type, quality).split(',');
+      const bstr=atob(parts[1]); let n=bstr.length; const u8=new Uint8Array(n);
+      while(n--) u8[n]=bstr.charCodeAt(n);
+      resolve(new Blob([u8],{type}));
+    }
+  });
+}
+function blobToCanvas(blob){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(blob);
+    const im=new Image();
+    im.onload=()=>{
+      URL.revokeObjectURL(url);
+      const c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight;
+      c.getContext('2d').drawImage(im,0,0);
+      resolve(c);
+    };
+    im.onerror=e=>{ URL.revokeObjectURL(url); reject(e); };
+    im.src=url;
+  });
+}
+let persistTimer=null;
+let pendingPersistOpts={};
+function persistState(opts){
+  // Accumulate flags across rapid successive calls (e.g. upload immediately
+  // followed by rotate/crop/undo) rather than letting a later debounce
+  // replace an earlier one - otherwise a newOriginal:true save could be
+  // cancelled by a plain follow-up save before it ever runs.
+  Object.assign(pendingPersistOpts, opts||{});
+  clearTimeout(persistTimer);
+  persistTimer=setTimeout(()=>{ const o=pendingPersistOpts; pendingPersistOpts={}; doPersist(o); }, 400);
+}
+async function doPersist(opts){
+  if(!window.LotPackOffline || !state.originalCanvas) return;
+  try{
+    const existing=await window.LotPackOffline.getSiteMedia() || {};
+    const record=Object.assign({}, existing, {
+      angle:state.angle,
+      crop:state.crop||defaultCrop(),
+      settings:currentSettings(),
+      onForm:!!state.onForm
+    });
+    if(opts.newOriginal){
+      record.originalBlob=await canvasToBlob(state.originalCanvas,'image/jpeg',0.92);
+      record.originalW=state.originalCanvas.width;
+      record.originalH=state.originalCanvas.height;
+      delete record.cleanedBlob; delete record.cleanedW; delete record.cleanedH;
+    }
+    if(opts.saveCleaned){
+      record.cleanedBlob=await canvasToBlob(out,'image/png');
+      record.cleanedW=out.width;
+      record.cleanedH=out.height;
+    }
+    await window.LotPackOffline.saveSiteMedia(record);
+  }catch(_e){ /* best-effort: generic autosave still covers every other field */ }
+}
+window.restoreSiteDiagramMedia=async function(){
+  if(!window.LotPackOffline) return;
+  try{
+    const rec=await window.LotPackOffline.getSiteMedia();
+    if(!rec || !rec.originalBlob) return;
+    const oc=await blobToCanvas(rec.originalBlob);
+    state.originalCanvas=oc;
+    state.angle=rec.angle||0;
+    state.crop=rec.crop||defaultCrop();
+    state.onForm=!!rec.onForm;
+    state.history=[];
+    undoBtn.disabled=true;
+    setButtonsEnabled(true);
+    if(rec.settings){
+      ['sens','bg','dark','noise'].forEach(k=>{ if(rec.settings[k]!=null){ $('sd_'+k).value=rec.settings[k]; $('sd_'+k+'Val').textContent=rec.settings[k]; } });
+    }
+    drawSource();
+    renderBeforeView();
+    if(rec.cleanedBlob){
+      const cc=await blobToCanvas(rec.cleanedBlob);
+      out.width=cc.width; out.height=cc.height;
+      octx.drawImage(cc,0,0);
+      cc.width=0; cc.height=0;
+      downloadPng.disabled=false;
+      if(state.onForm){
+        const data=out.toDataURL('image/png');
+        window.siteDiagrams=[{name:'Clean Diagram',originalData:data,redrawnTemplateData:data,cleanRedrawReady:true}];
+        diagramImg.src=data; ph.style.display='none';
+      }
+      status('Restored from this device’s saved copy.', true);
+    }else{
+      runAutoCleanPreview(true);
+    }
+  }catch(_e){}
+};
 })();
 
 function updateNorthArrowCompassFixed(){
