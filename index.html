@@ -6079,19 +6079,38 @@ canvas.signatureCanvas{
      the Ball Pen section on its own landscape sheet with larger text; anything
      older simply keeps today's portrait layout untouched. */
   @supports (page: ballpen){
+    /* The inherited .print-report/body chain is locked to portrait widths
+       (200mm / 210mm) by earlier print rules that must stay untouched for
+       every other page. This section breaks out of that chain with its own
+       explicit width so it actually fills the 297mm-wide landscape sheet,
+       instead of rendering as a narrow portrait-width form on the left. */
     .ballpen-landscape{
       page:ballpen;
       break-before:page;
       break-after:page;
+      width:267mm!important;
+      max-width:267mm!important;
+      margin-left:2mm!important;
+      margin-right:0!important;
+      box-sizing:border-box!important;
     }
-    .ballpen-landscape .pdfchk-title{font-size:17px!important}
-    .ballpen-landscape .pdfchk-sub{font-size:11px!important}
-    .ballpen-landscape .pdfchk-fields{font-size:13px!important;gap:4px 30px!important}
+    .ballpen-landscape .pdfchk-title{font-size:19px!important}
+    .ballpen-landscape .pdfchk-sub{font-size:12px!important}
+    .ballpen-landscape .pdfchk-logo{width:150px!important}
+    .ballpen-landscape .pdfchk-fields{font-size:14px!important;gap:6px 34px!important;margin-bottom:12px!important}
     .ballpen-landscape .ball-print th,
-    .ballpen-landscape .ball-print td{font-size:11.5px!important;padding:5.5px 4px!important;line-height:1.2!important}
-    .ballpen-landscape .pdftest-calc{font-size:12px!important}
-    .ballpen-landscape .pdftest-fine{font-size:10px!important}
-    .ballpen-landscape .pdfchk-signoff{font-size:13px!important}
+    .ballpen-landscape .ball-print td{font-size:13px!important;padding:8px 6px!important;line-height:1.25!important}
+    .ballpen-landscape .ball-print th:nth-child(1),.ballpen-landscape .ball-print td:nth-child(1){width:6%!important}
+    .ballpen-landscape .ball-print th:nth-child(2),.ballpen-landscape .ball-print td:nth-child(2){width:16%!important}
+    .ballpen-landscape .ball-print th:nth-child(3),.ballpen-landscape .ball-print td:nth-child(3){width:12%!important}
+    .ballpen-landscape .ball-print th:nth-child(n+4):nth-child(-n+8),.ballpen-landscape .ball-print td:nth-child(n+4):nth-child(-n+8){width:7.5%!important}
+    .ballpen-landscape .ball-print th:nth-child(9),.ballpen-landscape .ball-print td:nth-child(9){width:7.5%!important}
+    .ballpen-landscape .ball-print th:nth-child(10),.ballpen-landscape .ball-print td:nth-child(10){width:11%!important}
+    .ballpen-landscape .ball-print th:nth-child(11),.ballpen-landscape .ball-print td:nth-child(11){width:10.5%!important}
+    .ballpen-landscape .pdftest-calc{font-size:13px!important;padding:10px 14px!important;gap:2px 30px!important}
+    .ballpen-landscape .pdftest-fine{font-size:11px!important}
+    .ballpen-landscape .pdfchk-signoff{font-size:14px!important;margin-top:16px!important}
+    .ballpen-landscape .pdfchk-signoff > div{padding:10px 12px!important;min-height:28px!important}
   }
 }
 </style>
