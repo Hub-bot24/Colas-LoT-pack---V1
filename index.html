@@ -2314,16 +2314,28 @@ canvas,
 
 <div class="title">Included Items</div>
 <div class="included-grid">
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="qvc" onchange="syncIncludedPrint()"><span>QVC Attached</span></label>
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="bitumen" onchange="syncIncludedPrint()"><span>Bitumen Test Reports</span></label>
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="sitediagram" onchange="syncIncludedPrint()"><span>Site Diagram</span></label>
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="mat" onchange="syncIncludedPrint()"><span>Mat Test</span></label>
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="spray" onchange="syncIncludedPrint()"><span>Spray Sheet</span></label>
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="seal" onchange="syncIncludedPrint()"><span>Seal Design</span></label>
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="ball" onchange="syncIncludedPrint()"><span>Ball Pen Test</span></label>
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="ncr" onchange="syncIncludedPrint()"><span>NCR</span></label>
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="agg" onchange="syncIncludedPrint()"><span>Agg Test Results</span></label>
-  <label class="included-item"><input type="checkbox" class="incCheck" data-inc="samplecount" onchange="syncIncludedPrint()"><span>Sample Count taken</span></label>
+  <label class="included-item"><input type="checkbox" id="incQvc" class="incCheck" data-inc="qvc" onchange="incManualToggle('qvc')"><span>QVC Attached</span></label>
+  <label class="included-item"><input type="checkbox" id="incBitumen" class="incCheck" data-inc="bitumen" onchange="incManualToggle('bitumen')"><span>Bitumen Test Reports</span></label>
+  <label class="included-item"><input type="checkbox" id="incSiteDiagram" class="incCheck" data-inc="sitediagram" onchange="incManualToggle('sitediagram')"><span>Site Diagram</span></label>
+  <label class="included-item"><input type="checkbox" id="incMat" class="incCheck" data-inc="mat" onchange="incManualToggle('mat')"><span>Mat Test</span></label>
+  <label class="included-item"><input type="checkbox" id="incSpray" class="incCheck" data-inc="spray" onchange="incManualToggle('spray')"><span>Spray Sheet</span></label>
+  <label class="included-item"><input type="checkbox" id="incSeal" class="incCheck" data-inc="seal" onchange="incManualToggle('seal')"><span>Seal Design</span></label>
+  <label class="included-item"><input type="checkbox" id="incBall" class="incCheck" data-inc="ball" onchange="incManualToggle('ball')"><span>Ball Pen Test</span></label>
+  <label class="included-item"><input type="checkbox" id="incNcr" class="incCheck" data-inc="ncr" onchange="incManualToggle('ncr')"><span>NCR</span></label>
+  <label class="included-item"><input type="checkbox" id="incAgg" class="incCheck" data-inc="agg" onchange="incManualToggle('agg')"><span>Agg Test Results</span></label>
+  <label class="included-item"><input type="checkbox" id="incSampleCount" class="incCheck" data-inc="samplecount" onchange="incManualToggle('samplecount')"><span>Sample Count taken</span></label>
+</div>
+<div id="incOverrides" style="display:none" aria-hidden="true">
+  <input type="hidden" id="incOverride_qvc" value="">
+  <input type="hidden" id="incOverride_bitumen" value="">
+  <input type="hidden" id="incOverride_sitediagram" value="">
+  <input type="hidden" id="incOverride_mat" value="">
+  <input type="hidden" id="incOverride_spray" value="">
+  <input type="hidden" id="incOverride_seal" value="">
+  <input type="hidden" id="incOverride_ball" value="">
+  <input type="hidden" id="incOverride_ncr" value="">
+  <input type="hidden" id="incOverride_agg" value="">
+  <input type="hidden" id="incOverride_samplecount" value="">
 </div>
 
 <div class="title">Conformance</div>
@@ -3081,6 +3093,138 @@ function syncIncludedPrint(){
     });
   });
 }
+
+</script>
+<script>
+/* Documents Included logic runs in its own script tag deliberately: a
+   pre-existing, unrelated crash earlier in the previous tag
+   (document.getElementById('qvcBody') - that element no longer exists)
+   aborts the rest of that tag's top-level execution, which would silently
+   stop the const/addEventListener statements below from ever running. That
+   legacy line is left untouched - fixing it would also un-mask a second,
+   separate dead-code block that duplicates the Ball Pen table rows. */
+/* ---- Documents Included: smart auto-checking with manual override ----
+ * On-screen state for each item = manual override if the user has ever
+ * toggled it for this Lot Pack, otherwise the automatic default. Automatic
+ * detection only fires on reliable evidence that a document/test genuinely
+ * exists - never on the mere presence of a tab/section or an un-edited
+ * default value baked into the form. */
+function incGetOverride(key){
+  const el = document.getElementById('incOverride_' + key);
+  if(!el) return null;
+  if(el.value === '1') return true;
+  if(el.value === '0') return false;
+  return null;
+}
+
+function incAnyNonEmpty(selector){
+  let found = false;
+  document.querySelectorAll(selector).forEach(el=>{ if(String(el.value || '').trim() !== '') found = true; });
+  return found;
+}
+
+function incDetectSiteDiagram(){
+  try{
+    if(window.siteDiagrams && window.siteDiagrams.length && window.siteDiagrams[0] && window.siteDiagrams[0].cleanRedrawReady) return true;
+  }catch(_e){}
+  try{
+    const out = document.getElementById('sd_out');
+    // A canvas that has never been drawn on keeps the HTML default 300x150
+    // size; the Site Diagram tool always resizes it to the real cropped
+    // diagram when a clean diagram is generated - so a different size (even
+    // after reload, since the canvas bitmap persists in the normal offline
+    // draft snapshot) means a genuine diagram exists. Presence of the tab
+    // or an untouched blank canvas is never treated as evidence.
+    if(out && out.width > 0 && out.height > 0 && !(out.width === 300 && out.height === 150)) return true;
+  }catch(_e){}
+  return false;
+}
+
+function incDetectSpraySheet(){
+  const el = document.getElementById('spraySheetNo');
+  if(!el) return false;
+  const value = String(el.value || '').trim();
+  if(!value) return false;
+  // This field ships with a sample reference number already filled in on a
+  // blank Lot Pack; only count it once the crew has actually changed that
+  // value, so a brand-new Lot Pack does not auto-tick from the unedited
+  // default.
+  return value !== String(el.defaultValue || '').trim();
+}
+
+function incDetectBallPen(){
+  // Evidence = an actual penetration reading entered, not just the tab
+  // being visited or chainage/offset filled in.
+  return incAnyNonEmpty('.reading');
+}
+
+function incDetectMat(){
+  // Evidence = a genuine Mass (M1) or Loose Unit Mass (M3) reading entered.
+  // The reference constants on this page (M2, Area, DL, container volume)
+  // ship with default values, so they are never used as evidence.
+  return incAnyNonEmpty('#m1_1,#m1_2,#m1_3,#m3_1,#m3_2,#m3_3');
+}
+
+function incDetectNcr(){
+  let found = false;
+  document.querySelectorAll('.qvcTick[data-col="ncr"]').forEach(cb=>{ if(cb.checked) found = true; });
+  return found;
+}
+
+// Items with no reliable existing evidence signal in the app are left out
+// here on purpose and stay manual-only (see incAutoDefault below):
+// Seal Design, Agg. Test Results, Sample Count taken.
+const INC_DETECTORS = {
+  sitediagram: incDetectSiteDiagram,
+  spray: incDetectSpraySheet,
+  ball: incDetectBallPen,
+  mat: incDetectMat,
+  ncr: incDetectNcr
+};
+
+function incAutoDefault(key){
+  // QVC and Bitumen Test Reports are CHECKED by default on every new Lot
+  // Pack - this is a default value only, not completion detection.
+  if(key === 'qvc' || key === 'bitumen') return true;
+  const detector = INC_DETECTORS[key];
+  return detector ? !!detector() : false;
+}
+
+function applyIncludedAutoState(){
+  document.querySelectorAll('.incCheck').forEach(cb=>{
+    const key = cb.dataset.inc;
+    const override = incGetOverride(key);
+    cb.checked = (override === null) ? incAutoDefault(key) : override;
+  });
+  syncIncludedPrint();
+}
+window.applyIncludedAutoState = applyIncludedAutoState;
+
+function incManualToggle(key){
+  const cb = document.querySelector(`.incCheck[data-inc="${key}"]`);
+  if(!cb) return;
+  const ov = document.getElementById('incOverride_' + key);
+  // The user's explicit choice always wins from now on for this Lot Pack -
+  // automatic detection must never re-tick or re-untick it afterwards.
+  if(ov) ov.value = cb.checked ? '1' : '0';
+  syncIncludedPrint();
+}
+
+// Re-run auto-detection whenever anything in the Lot Pack changes, so items
+// like Ball Pen Test or Site Diagram tick themselves the moment genuine
+// evidence appears - without ever overriding a manual choice. Events from
+// the checklist checkboxes themselves are skipped here: incManualToggle()
+// (wired via each checkbox's own onchange) already records the override and
+// refreshes the print state synchronously, and re-running auto-detection
+// from this listener on their "input" event (which fires before "change")
+// would otherwise stomp the user's click back to the automatic value before
+// incManualToggle ever sees it.
+function incGlobalAutoStateListener(event){
+  if(event.target && event.target.classList && event.target.classList.contains('incCheck')) return;
+  applyIncludedAutoState();
+}
+document.addEventListener('input', incGlobalAutoStateListener);
+document.addEventListener('change', incGlobalAutoStateListener);
 
 function syncLotCoverPrint(){
   const set = (id, value) => { const el = document.getElementById(id); if(el) el.textContent = value || ""; };

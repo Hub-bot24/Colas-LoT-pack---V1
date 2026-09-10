@@ -266,6 +266,10 @@
   async function restoreCurrentDraft(){
     const record = await get(DRAFTS,currentDraftId());
     if(record?.snapshot) restoreSnapshot(record.snapshot);
+    // Resolve Documents Included auto/override state now that any saved
+    // manual overrides are restored (or, on a brand-new draft, so the
+    // QVC/Bitumen defaults and auto-detection apply immediately).
+    try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
   }
 
   async function sha256(text){
