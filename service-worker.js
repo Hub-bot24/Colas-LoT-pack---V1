@@ -1,4 +1,4 @@
-const CACHE_NAME = 'colas-lotpack-v126-durable-offline';
+const CACHE_NAME = 'colas-lotpack-v127-ballpen-landscape-fix';
 const APP_SHELL = [
   './','./index.html','./site-diagram-print.html','./colas_logo.png','./manifest.webmanifest',
   './app-config.js','./qvc-checklist-data.js','./compass-options-data.js','./cloud-core.js','./offline-core.js','./version.txt'
