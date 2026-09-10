@@ -2892,6 +2892,10 @@ function runAutoCleanPreview(isInitial){
   lastQualitySample=result.qualitySample;
   updateQualityBadge();
   status(isInitial?'Auto Clean complete. Review the result below.':'Preview updated.', true);
+  // Documents Included auto-detection listens for input/change events, but
+  // the file input's own "change" fires before this async decode+clean
+  // pass finishes, so nothing re-checks it afterwards unless prompted here.
+  try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
 }
 autoCleanBtn.onclick=()=>runAutoCleanPreview(false);
 ['sens','bg','dark','noise'].forEach(id=>$('sd_'+id).addEventListener('input',()=>{
@@ -2920,6 +2924,7 @@ cleanBtn.onclick=async ()=>{
   scaleSheet();
   cleanBtn.disabled=false;
   persistState({saveCleaned:true});
+  try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
 };
 downloadPng.onclick=()=>{const a=document.createElement('a');a.download='clean-diagram-'+VERSION+'.png';a.href=out.toDataURL('image/png');a.click()};
 
@@ -3051,6 +3056,7 @@ window.restoreSiteDiagramMedia=async function(){
     }else{
       runAutoCleanPreview(true);
     }
+    try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
   }catch(_e){}
 };
 })();
