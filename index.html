@@ -4632,6 +4632,12 @@ async function emailReport(){
     var pShift = byId('pShift');
     if(pShift) pShift.textContent = (shift === 'N' ? 'Night' : 'Day');
 
+    var pWorkDate = byId('pWorkDate');
+    if(pWorkDate){
+      var workDateRaw = getValue('workDate');
+      pWorkDate.textContent = workDateRaw ? workDateRaw.split('-').reverse().join('/') : '';
+    }
+
     if(window.syncSiteDiagramFromCover) {
       try { window.syncSiteDiagramFromCover(); } catch(e){}
     }
