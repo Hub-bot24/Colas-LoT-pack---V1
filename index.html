@@ -978,6 +978,28 @@ html,body{width:100%;max-width:100%;overflow-x:hidden;overflow-x:clip;-webkit-te
 #site .sd-crop-hint{font-size:12.5px;color:#475467;margin:6px 0}
 @media (min-width:900px) and (orientation:landscape){#site .sd-review{grid-template-columns:1fr 1fr}}
 
+/* Phase B: multiple Site Diagrams list/selector - large touch targets, one
+   editor below operates on whichever card is selected. */
+#site .sd-diagram-list{display:grid;grid-template-columns:1fr;gap:10px}
+#site .sd-diagram-item{display:flex;align-items:center;gap:10px;border:1.5px solid #d0d5dd;border-radius:10px;padding:8px;background:#fff}
+#site .sd-diagram-item.sd-diagram-selected{border-color:#00447c;background:#eef4fb}
+#site .sd-diagram-thumb{width:56px;height:56px;flex:none;border:1px solid #d0d5dd;border-radius:6px;background:#f4f6f8;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#site .sd-diagram-thumb img{width:100%;height:100%;object-fit:cover}
+#site .sd-diagram-info{flex:1;min-width:0}
+#site .sd-diagram-title-row{display:flex;align-items:center;gap:6px}
+#site .sd-diagram-num{font-weight:800;color:#00447c;white-space:nowrap}
+#site .sd-diagram-title-input{border:1px solid transparent;background:transparent;font-weight:700;font-size:14px;padding:5px 6px;border-radius:6px;min-width:0;flex:1}
+#site .sd-diagram-title-input:focus{border-color:#d0d5dd;background:#fff}
+#site .sd-diagram-status{font-size:12px;font-weight:700;margin-top:2px}
+#site .sd-diagram-status.ready{color:#027a48}
+#site .sd-diagram-status.draft{color:#93700a}
+#site .sd-diagram-actions{display:flex;gap:6px;flex:none}
+#site .sd-diagram-actions button{padding:10px 12px;font-size:13px;border-radius:8px;min-height:40px}
+@media(max-width:560px){
+  #site .sd-diagram-item{flex-wrap:wrap}
+  #site .sd-diagram-actions{width:100%;justify-content:flex-end}
+}
+
 
 @media print{
   .diagramImg, #diagramImg{
@@ -1132,6 +1154,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden;overflow-x:clip;-webkit-te
 <style id="v33-full-report-site-diagram-css">
 /* V33 FINAL: Site Diagram is a real page inside the normal print report */
 .v33-site-diagram-print-page{display:none;}
+.v40-additional-diagram-page{display:none;}
 
 @media print{
   #v33FullReportSiteDiagramPage{
@@ -1151,6 +1174,40 @@ html,body{width:100%;max-width:100%;overflow-x:hidden;overflow-x:clip;-webkit-te
   }
 
   #v33FullReportSiteDiagramPage .v33-sheet{
+    width:190mm!important;
+    height:277mm!important;
+    position:relative!important;
+    background:white!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    box-shadow:none!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Phase B: additional Site Diagram attachment pages (sequence>1). Reuses
+     every inner .v33-* class as-is (title/table/cell/maparea/diagram/
+     notes/footer are already bare class selectors, not ID-scoped) - only
+     the outer page container and .v33-sheet sizing need a class-scoped
+     rule here, since #v33FullReportSiteDiagramPage above is ID-scoped and
+     there can be several of these on one page. */
+  .v40-additional-diagram-page{
+    display:block!important;
+    page-break-before:always!important;
+    break-before:page!important;
+    width:190mm!important;
+    height:277mm!important;
+    margin:0!important;
+    padding:0!important;
+    background:white!important;
+    overflow:hidden!important;
+    position:relative!important;
+    box-sizing:border-box!important;
+    color:#111!important;
+    font-family:Arial,Helvetica,sans-serif!important;
+  }
+
+  .v40-additional-diagram-page .v33-sheet{
     width:190mm!important;
     height:277mm!important;
     position:relative!important;
@@ -2421,6 +2478,11 @@ canvas,
 
 <div id="site" class="page">
   <div class="title">Site Diagram Worksheet - v23 separate print</div>
+  <div class="sd-card" id="sd_diagramListCard">
+    <b id="sd_diagramListHeading">Site Diagrams (1)</b>
+    <div id="sd_diagramList" class="sd-diagram-list" style="margin-top:10px"></div>
+    <div class="sd-row" style="margin-top:10px"><button class="sd-btn" id="sd_addDiagramBtn" type="button">+ Add Diagram</button></div>
+  </div>
   <div class="sd-card">
     <b>1) Diagram page details</b>
     <div class="sd-fieldgrid" style="margin-top:8px">
@@ -2498,7 +2560,7 @@ canvas,
   </div>
 <script>
 (function(){
-const VERSION='v40-site-diagram-hd-phase1';
+const VERSION='v40-site-diagram-hd-phase1-multi';
 const $=id=>document.getElementById(id);
 const fileInput=$('sd_file'), src=$('sd_src'), out=$('sd_out'), beforeView=$('sd_beforeView');
 if(!fileInput||!src||!out)return;
@@ -2509,6 +2571,7 @@ const statusEl=$('sd_status'), rotateBtn=$('sd_rotateBtn'), resetCropBtn=$('sd_r
 const autoCleanBtn=$('sd_autoCleanBtn'), cropToggleBtn=$('sd_cropToggleBtn'), undoBtn=$('sd_undoBtn'), applyCropBtn=$('sd_applyCropBtn'), cropCard=$('sd_cropCard');
 const qualityEl=$('sd_quality');
 const sens=$('sd_sens'), bg=$('sd_bg'), dark=$('sd_dark'), noise=$('sd_noise'), diagramImg=$('sd_diagramImg'), ph=$('sd_ph');
+const diagramListEl=$('sd_diagramList'), diagramListHeading=$('sd_diagramListHeading'), addDiagramBtn=$('sd_addDiagramBtn');
 
 function status(t,ok){statusEl.innerHTML=(ok?'<span style="color:#027a48">':'')+t+(ok?'</span>':'');}
 function getVal(id){const el=$(id); return el ? (('value' in el) ? el.value : el.textContent) : '';}
@@ -2529,6 +2592,7 @@ function updateForm(){
   const v=$('sd_northSel').value,a=$('sd_northArrow');a.textContent='';a.style.transform='';
   if(v!=='blank'){a.textContent='↑';const rotations={'up':0,'up-right':45,'right':90,'down-right':135,'down':180,'down-left':225,'left':270,'up-left':315};a.style.transform='rotate('+(rotations[v] ?? 0)+'deg)';}
   scaleSheet();
+  try{ syncAdditionalDiagramPrintPages(); }catch(_e){}
 }
 ['Customer','Job','Loc','Lot','Date','Prep'].forEach(k=>{const e=$('sd_f'+k);if(e)e.addEventListener('input',updateForm)});$('sd_northSel').addEventListener('change',updateForm);
 function scaleSheet(){const wrap=$('sd_sheetWrap'), sheet=$('sd_sheet'); if(!wrap||!sheet)return; sheet.style.transform='scale(1)'; sheet.style.height='1273px'; if(window.matchMedia('print').matches)return; const avail=wrap.clientWidth-16; const scale=Math.min(1,avail/900); sheet.style.transform='scale('+scale+')'; wrap.style.height=(1273*scale+18)+'px';}
@@ -2562,6 +2626,28 @@ let state = {
   history:[]              // small undo stack of {angle,crop}, rotate/crop only
 };
 let lastQualitySample=null, lastAutoCropConfidence=null;
+
+/* ---------------- Phase B: multiple Site Diagrams ----------------------
+ * One editor (the state object above + the canvases it drives) operates on
+ * whichever diagram is currently selected - never more than one HD image
+ * resident at a time. `diagrams` is the in-memory mirror of every non-
+ * deleted SITE_DIAGRAM lotMedia record for the current draft; it is kept in
+ * sync on every load/create/edit/delete so list rendering and Documents
+ * Included detection never need a fresh async round-trip just to answer
+ * "does at least one diagram exist / is ready". lotMedia remains the only
+ * persisted source of truth - this array is a read-through mirror of it,
+ * not a second store. */
+let diagrams=[];                    // SITE_DIAGRAM records, not deleted, any order
+let activeMediaId=null;             // mediaId currently loaded into the editor
+let thumbCache={};                  // in-memory only: {mediaId:{updatedAt,dataUrl}}
+let additionalDiagramDataUrls={};   // in-memory only: {mediaId:dataUrl} for sequence>1 print pages
+
+function defaultDiagramTitle(seq){ return seq===1 ? 'Main Site Diagram' : ('Additional Site Diagram '+seq); }
+function diagramDisplayTitle(rec){ return (rec.title && rec.title.trim()) || defaultDiagramTitle(rec.sequence); }
+// Documents Included's Site Diagram detector reads this - a single boolean
+// accessor over the SAME in-memory mirror used for print/list rendering,
+// not a parallel truth source.
+window.sdDiagramsReady = function(){ return diagrams.some(d=>d.onForm); };
 
 function defaultCrop(){ return {x:0.08,y:0.28,w:0.84,h:0.58}; }
 
@@ -2833,30 +2919,33 @@ function runClean(sourceCanvas, cropPx, maxSide, settings){
   const cw=Math.max(1,Math.round(cropPx.w*scale)), ch=Math.max(1,Math.round(cropPx.h*scale));
   let tmpCanvas=document.createElement('canvas');
   tmpCanvas.width=cw; tmpCanvas.height=ch;
-  let tctx=tmpCanvas.getContext('2d',{willReadFrequently:true});
+  const tctx=tmpCanvas.getContext('2d',{willReadFrequently:true});
   tctx.drawImage(sourceCanvas, cropPx.x, cropPx.y, cropPx.w, cropPx.h, 0, 0, cw, ch);
-  let im=tctx.getImageData(0,0,cw,ch);
-  let d=im.data;
+  const im=tctx.getImageData(0,0,cw,ch);
+  const d=im.data;
+  tmpCanvas.width=0; tmpCanvas.height=0; tmpCanvas=null;
+
   const n=cw*ch;
-  let gray=new Float32Array(n), satArr=new Float32Array(n);
+  const gray=new Float32Array(n), sat=new Float32Array(n);
   for(let i=0,p=0;i<d.length;i+=4,p++){
     const r=d[i],g=d[i+1],b=d[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);
-    gray[p]=.299*r+.587*g+.114*b; satArr[p]=mx-mn;
+    gray[p]=.299*r+.587*g+.114*b; sat[p]=mx-mn;
   }
-  // raw crop pixels no longer needed - release before the heavier passes
-  im=null; d=null;
-  tmpCanvas.width=0; tmpCanvas.height=0; tmpCanvas=null; tctx=null;
 
   const qualitySample=sampleQuality(gray,cw,ch);
 
-  const scratch=new Float32Array(n);
-  const background=boxBlurGray(gray,cw,ch,Number(settings.bg),scratch,null);
-  const threshold=Number(settings.sens), inkBoost=Number(settings.dark), noisePasses=Number(settings.noise);
-  const mask=new Uint8Array(n);
-  for(let p=0;p<n;p++) mask[p]=((background[p]-gray[p])+satArr[p]*.42) > threshold ? 1 : 0;
-  satArr=null; scratch.fill(0);
+  const sensVal=Number(settings.sens), bgVal=Number(settings.bg), inkBoost=Number(settings.dark), noiseVal=Number(settings.noise);
+  const blurR=Math.max(4,Math.round(Math.min(cw,ch)*bgVal/1000));
+  const background=boxBlurGray(gray,cw,ch,blurR);
 
-  if(noisePasses>0){
+  const mask=new Uint8Array(n);
+  for(let p=0;p<n;p++){
+    const diff=background[p]-gray[p];
+    if(diff>sensVal && sat[p]<90) mask[p]=1;
+  }
+
+  if(noiseVal>0){
+    const noisePasses=Math.min(3,Math.max(1,Math.round(noiseVal)));
     for(let pass=0;pass<noisePasses;pass++){
       const copy=mask.slice();
       for(let y=1;y<ch-1;y++) for(let x=1;x<cw-1;x++){
@@ -2904,7 +2993,7 @@ autoCleanBtn.onclick=()=>runAutoCleanPreview(false);
 }));
 
 cleanBtn.onclick=async ()=>{
-  if(!state.originalCanvas) return;
+  if(!state.originalCanvas || !activeMediaId) return;
   cleanBtn.disabled=true;
   status('Rendering HD diagram…', true);
   await new Promise(r=>setTimeout(r,10));
@@ -2916,14 +3005,28 @@ cleanBtn.onclick=async ()=>{
   lastQualitySample=result.qualitySample;
   updateQualityBadge();
   const data=out.toDataURL('image/png');
-  window.siteDiagrams=[{name:'Clean Diagram',originalData:data,redrawnTemplateData:data,cleanRedrawReady:true}];
+  state.onForm=true;
+  // Sync the in-memory list entry + print surface for THIS diagram
+  // immediately (synchronously) rather than waiting for the debounced
+  // persist below - Documents Included and the diagram-list status badge
+  // both need to see this the instant the user commits the diagram.
+  const activeRec=diagrams.find(d=>d.mediaId===activeMediaId);
+  if(activeRec){
+    activeRec.onForm=true;
+    if(activeRec.sequence===1){
+      window.siteDiagrams=[{name:'Clean Diagram',originalData:data,redrawnTemplateData:data,cleanRedrawReady:true}];
+    }else{
+      additionalDiagramDataUrls[activeMediaId]=data;
+    }
+  }
   diagramImg.src=data;
   ph.style.display='none';
-  state.onForm=true;
   status('Clean diagram is now on the full worksheet form below.', true);
   scaleSheet();
   cleanBtn.disabled=false;
   persistState({saveCleaned:true});
+  renderDiagramList();
+  try{ syncAdditionalDiagramPrintPages(); }catch(_e){}
   try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
 };
 downloadPng.onclick=()=>{const a=document.createElement('a');a.download='clean-diagram-'+VERSION+'.png';a.href=out.toDataURL('image/png');a.click()};
@@ -2931,6 +3034,7 @@ downloadPng.onclick=()=>{const a=document.createElement('a');a.download='clean-d
 /* ---------------- upload ---------------- */
 fileInput.addEventListener('change', e=>{
   const f=e.target.files[0]; if(!f) return;
+  if(!activeMediaId){ status('Select or add a diagram first.'); return; }
   status('Loading photo…', true);
   const url=URL.createObjectURL(f);
   const im=new Image();
@@ -2959,10 +3063,11 @@ function buildRetainedOriginal(im){
 }
 
 /* ---------------- offline persistence ----------------
- * Original photo + cleaned HD result are stored as Blobs in their own
- * IndexedDB object store (via offline-core.js's window.LotPackOffline),
- * one record per draft - never inside the generic autosaved form
- * snapshot, so they cannot bloat every autosave/cloud-backup cycle. */
+ * Every diagram's original photo + cleaned HD result are stored as Blobs
+ * in the shared lotMedia IndexedDB object store (via offline-core.js's
+ * window.LotPackOffline), one record per diagram, addressed by its own
+ * permanent mediaId - never inside the generic autosaved form snapshot,
+ * so they cannot bloat every autosave/cloud-backup cycle. */
 function canvasToBlob(canvas, type, quality){
   return new Promise(resolve=>{
     if(canvas.toBlob){ canvas.toBlob(b=>resolve(b), type, quality); }
@@ -2988,75 +3093,397 @@ function blobToCanvas(blob){
     im.src=url;
   });
 }
+
 let persistTimer=null;
-let pendingPersistOpts={};
+let pendingPersistOpts=null;
+let pendingPersistMediaId=null;
+
+// Debounced, but flag-accumulating (like the single-diagram version this
+// replaces) AND mediaId-aware: if a diagram switch happens before the timer
+// fires, the pending write for the PREVIOUS diagram is flushed immediately
+// first (see selectDiagram/addDiagramBtn/deleteDiagram) so no edit can ever
+// be silently attributed to - or lost by switching away from - the wrong
+// diagram. This is the release-blocker guarantee against cross-diagram
+// leakage.
 function persistState(opts){
-  // Accumulate flags across rapid successive calls (e.g. upload immediately
-  // followed by rotate/crop/undo) rather than letting a later debounce
-  // replace an earlier one - otherwise a newOriginal:true save could be
-  // cancelled by a plain follow-up save before it ever runs.
-  Object.assign(pendingPersistOpts, opts||{});
+  if(!activeMediaId) return;
+  if(pendingPersistMediaId && pendingPersistMediaId!==activeMediaId){
+    flushPersist();
+  }
+  pendingPersistMediaId=activeMediaId;
+  pendingPersistOpts=Object.assign({}, pendingPersistOpts, opts||{});
   clearTimeout(persistTimer);
-  persistTimer=setTimeout(()=>{ const o=pendingPersistOpts; pendingPersistOpts={}; doPersist(o); }, 400);
+  persistTimer=setTimeout(()=>{ flushPersist(); }, 400);
 }
-async function doPersist(opts){
-  if(!window.LotPackOffline || !state.originalCanvas) return;
+async function flushPersist(){
+  clearTimeout(persistTimer);
+  persistTimer=null;
+  if(!pendingPersistMediaId) return;
+  const mediaId=pendingPersistMediaId, opts=pendingPersistOpts||{};
+  pendingPersistMediaId=null; pendingPersistOpts=null;
+  await doPersist(mediaId, opts);
+}
+async function doPersist(mediaId, opts){
+  if(!window.LotPackOffline) return;
   try{
-    const existing=await window.LotPackOffline.getSiteMedia() || {};
+    const existing=await window.LotPackOffline.getMediaRecord(mediaId) || {};
     const record=Object.assign({}, existing, {
-      angle:state.angle,
-      crop:state.crop||defaultCrop(),
-      settings:currentSettings(),
-      onForm:!!state.onForm
+      mediaId,
+      draftId: window.LotPackOffline.getCurrentDraftId(),
+      type:'SITE_DIAGRAM',
+      sequence: existing.sequence,
+      rotation: state.angle,
+      crop: state.crop||defaultCrop(),
+      settings: currentSettings(),
+      onForm: !!state.onForm,
+      title: existing.title || '',
+      description: existing.description || '',
+      deletedAt: existing.deletedAt || null,
+      createdAt: existing.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
     if(opts.newOriginal){
-      record.originalBlob=await canvasToBlob(state.originalCanvas,'image/jpeg',0.92);
-      record.originalW=state.originalCanvas.width;
-      record.originalH=state.originalCanvas.height;
-      delete record.cleanedBlob; delete record.cleanedW; delete record.cleanedH;
+      record.sourceBlob=await canvasToBlob(state.originalCanvas,'image/jpeg',0.92);
+      record.sourceWidth=state.originalCanvas.width;
+      record.sourceHeight=state.originalCanvas.height;
+      record.processedBlob=null; record.processedWidth=0; record.processedHeight=0;
+      // Only invalidate the cached print image when this flush is PURELY a
+      // fresh upload with nothing committed yet. A rapid upload -> Auto Clean
+      // -> Use Clean Diagram sequence can merge newOriginal and saveCleaned
+      // into the SAME debounced flush (persistState() merges opts across
+      // calls inside its 400ms window) - in that case the diagram has
+      // already been committed by the time this runs, and cleanBtn.onclick
+      // already set the correct cache entry synchronously, so deleting it
+      // here would silently drop that diagram's print page from the live
+      // session (found via a real 3-diagram PDF capture: the last-added
+      // diagram's attachment page went missing) until the next reload.
+      if(record.sequence>1 && !opts.saveCleaned) delete additionalDiagramDataUrls[mediaId];
     }
     if(opts.saveCleaned){
-      record.cleanedBlob=await canvasToBlob(out,'image/png');
-      record.cleanedW=out.width;
-      record.cleanedH=out.height;
+      record.processedBlob=await canvasToBlob(out,'image/png');
+      record.processedWidth=out.width;
+      record.processedHeight=out.height;
     }
-    await window.LotPackOffline.saveSiteMedia(record);
+    await window.LotPackOffline.saveMediaRecord(record);
+    const idx=diagrams.findIndex(d=>d.mediaId===mediaId);
+    if(idx>=0) diagrams[idx]=record; else diagrams.push(record);
+    delete thumbCache[mediaId];
+    renderDiagramList();
   }catch(_e){ /* best-effort: generic autosave still covers every other field */ }
 }
+
+/* ---------------- diagram list / selection --------------------------- */
+async function getThumbDataUrl(rec){
+  const cached=thumbCache[rec.mediaId];
+  if(cached && cached.updatedAt===rec.updatedAt) return cached.dataUrl;
+  const blob=rec.processedBlob || rec.sourceBlob;
+  if(!blob) return null;
+  try{
+    const cc=await blobToCanvas(blob);
+    const THUMB=96;
+    const scale=Math.min(1, THUMB/Math.max(cc.width,cc.height));
+    const tw=Math.max(1,Math.round(cc.width*scale)), th=Math.max(1,Math.round(cc.height*scale));
+    const tc=document.createElement('canvas'); tc.width=tw; tc.height=th;
+    tc.getContext('2d').drawImage(cc,0,0,tw,th);
+    cc.width=0; cc.height=0;
+    const dataUrl=tc.toDataURL('image/jpeg',0.7);
+    tc.width=0; tc.height=0;
+    thumbCache[rec.mediaId]={updatedAt:rec.updatedAt, dataUrl};
+    return dataUrl;
+  }catch(_e){ return null; }
+}
+
+function renderDiagramList(){
+  if(diagramListHeading) diagramListHeading.textContent='Site Diagrams ('+diagrams.length+')';
+  if(!diagramListEl) return;
+  diagramListEl.innerHTML='';
+  diagrams.slice().sort((a,b)=>a.sequence-b.sequence).forEach(rec=>{
+    const item=document.createElement('div');
+    item.className='sd-diagram-item'+(rec.mediaId===activeMediaId?' sd-diagram-selected':'');
+    item.dataset.mediaId=rec.mediaId;
+
+    const thumb=document.createElement('div');
+    thumb.className='sd-diagram-thumb';
+    thumb.textContent=String(rec.sequence);
+    item.appendChild(thumb);
+    getThumbDataUrl(rec).then(url=>{
+      if(!url || !thumb.isConnected) return;
+      const img=document.createElement('img'); img.src=url; img.alt='';
+      thumb.textContent=''; thumb.appendChild(img);
+    });
+
+    const info=document.createElement('div');
+    info.className='sd-diagram-info';
+    const titleRow=document.createElement('div');
+    titleRow.className='sd-diagram-title-row';
+    const num=document.createElement('span');
+    num.className='sd-diagram-num';
+    num.textContent='['+rec.sequence+']';
+    titleRow.appendChild(num);
+    const titleInput=document.createElement('input');
+    titleInput.className='sd-diagram-title-input';
+    titleInput.value=diagramDisplayTitle(rec);
+    titleInput.setAttribute('aria-label','Diagram title');
+    let renameTimer=null;
+    titleInput.addEventListener('input',()=>{
+      clearTimeout(renameTimer);
+      const val=titleInput.value;
+      renameTimer=setTimeout(()=>renameDiagram(rec.mediaId,val),500);
+    });
+    titleInput.addEventListener('click',ev=>ev.stopPropagation());
+    titleInput.addEventListener('pointerdown',ev=>ev.stopPropagation());
+    titleRow.appendChild(titleInput);
+    info.appendChild(titleRow);
+
+    const statusRow=document.createElement('div');
+    const ready=!!rec.onForm;
+    statusRow.className='sd-diagram-status '+(ready?'ready':'draft');
+    statusRow.textContent=ready?'✓ Ready':'Draft';
+    info.appendChild(statusRow);
+    item.appendChild(info);
+
+    const actions=document.createElement('div');
+    actions.className='sd-diagram-actions';
+    const editBtn=document.createElement('button');
+    editBtn.type='button'; editBtn.className='sd-btn light'; editBtn.textContent='Edit';
+    editBtn.addEventListener('click',ev=>{ ev.stopPropagation(); selectDiagram(rec.mediaId); });
+    actions.appendChild(editBtn);
+    if(rec.sequence!==1){
+      const delBtn=document.createElement('button');
+      delBtn.type='button'; delBtn.className='sd-btn secondary'; delBtn.textContent='Delete';
+      delBtn.addEventListener('click',ev=>{ ev.stopPropagation(); deleteDiagram(rec.mediaId); });
+      actions.appendChild(delBtn);
+    }
+    item.appendChild(actions);
+
+    item.addEventListener('click',()=>selectDiagram(rec.mediaId));
+    diagramListEl.appendChild(item);
+  });
+}
+
+async function selectDiagram(mediaId){
+  if(mediaId===activeMediaId) return;
+  await flushPersist();
+  await loadDiagramIntoEditor(mediaId);
+  renderDiagramList();
+}
+
+// Loads ONE diagram's data into the shared editor. Always releases the
+// previous canvas backing stores first (set width/height to 0) before
+// allocating new ones, so switching repeatedly between several HD diagrams
+// never keeps more than one resident at a time.
+async function loadDiagramIntoEditor(mediaId){
+  const rec=await window.LotPackOffline.getMediaRecord(mediaId);
+  if(!rec) return;
+  activeMediaId=mediaId;
+
+  state.originalCanvas=null;
+  src.width=0; src.height=0;
+  out.width=0; out.height=0;
+  if(beforeView){ beforeView.width=0; beforeView.height=0; }
+  downloadPng.disabled=true;
+  diagramImg.removeAttribute('src');
+  ph.style.display='';
+
+  state.angle=rec.rotation||0;
+  state.crop=rec.crop||defaultCrop();
+  state.onForm=!!rec.onForm;
+  state.history=[];
+  undoBtn.disabled=true;
+
+  if(rec.settings){ ['sens','bg','dark','noise'].forEach(k=>{ if(rec.settings[k]!=null){ $('sd_'+k).value=rec.settings[k]; $('sd_'+k+'Val').textContent=rec.settings[k]; } }); }
+
+  if(rec.sourceBlob){
+    state.originalCanvas=await blobToCanvas(rec.sourceBlob);
+    setButtonsEnabled(true);
+    drawSource();
+    renderBeforeView();
+  }else{
+    setButtonsEnabled(false);
+    status('Waiting for upload...');
+  }
+
+  if(rec.processedBlob){
+    const cc=await blobToCanvas(rec.processedBlob);
+    out.width=cc.width; out.height=cc.height;
+    octx.drawImage(cc,0,0);
+    cc.width=0; cc.height=0;
+    downloadPng.disabled=false;
+    if(state.onForm){
+      const data=out.toDataURL('image/png');
+      diagramImg.src=data; ph.style.display='none';
+      if(rec.sequence===1){
+        window.siteDiagrams=[{name:'Clean Diagram',originalData:data,redrawnTemplateData:data,cleanRedrawReady:true}];
+      }else{
+        additionalDiagramDataUrls[mediaId]=data;
+      }
+    }
+    status('Restored from this device’s saved copy.', true);
+  }else if(rec.sourceBlob){
+    runAutoCleanPreview(true);
+  }
+  scaleSheet();
+  try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
+}
+
+async function renameDiagram(mediaId, newTitle){
+  const rec=diagrams.find(d=>d.mediaId===mediaId);
+  if(!rec) return;
+  rec.title=newTitle;
+  rec.updatedAt=new Date().toISOString();
+  await window.LotPackOffline.saveMediaRecord(rec);
+  try{ syncAdditionalDiagramPrintPages(); }catch(_e){}
+}
+
+async function deleteDiagram(mediaId){
+  const rec=diagrams.find(d=>d.mediaId===mediaId);
+  if(!rec || rec.sequence===1) return; // Main Site Diagram is never deletable from this UI
+  if(!confirm('Delete '+diagramDisplayTitle(rec)+'?\n\nThis removes this diagram from the Lot Pack.')) return;
+  if(mediaId===activeMediaId) await flushPersist();
+  await window.LotPackOffline.softDeleteMedia(mediaId);
+  diagrams=diagrams.filter(d=>d.mediaId!==mediaId);
+  delete additionalDiagramDataUrls[mediaId];
+  delete thumbCache[mediaId];
+  if(activeMediaId===mediaId){
+    const main=diagrams.find(d=>d.sequence===1) || diagrams[0];
+    if(main) await loadDiagramIntoEditor(main.mediaId);
+  }
+  renderDiagramList();
+  try{ syncAdditionalDiagramPrintPages(); }catch(_e){}
+  try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
+}
+
+addDiagramBtn.onclick=async ()=>{
+  await flushPersist();
+  const rec=await window.LotPackOffline.createMediaRecord('SITE_DIAGRAM', {});
+  diagrams.push(rec);
+  await loadDiagramIntoEditor(rec.mediaId);
+  renderDiagramList();
+  try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
+};
+
+/* ---------------- additional diagram print pages -----------------------
+ * Diagram 1 (Main) keeps printing on the existing, untouched controlled
+ * #v33FullReportSiteDiagramPage. Each COMPLETED additional diagram
+ * (sequence>1, onForm, has a processed image) gets its own repeatable
+ * attachment page, built from the SAME v33-* classes/CSS as the Main page
+ * (only the outer page-break container is new), inserted right after it.
+ * Rebuilt from scratch on every sync - never left stale/duplicated across
+ * repeated print cycles - and entirely synchronous (uses the pre-computed
+ * additionalDiagramDataUrls cache) so it can run from the same synchronous
+ * beforeprint/previewPrint hooks every other print-sync function already
+ * uses, including the direct PDF capture path (print-pdf-capture.js). */
+function getSiteDiagramLogoSrc(){
+  const existing=document.querySelector('#v33FullReportSiteDiagramPage .v33-logo');
+  return existing ? existing.src : '';
+}
+// The PDF capture path (print-pdf-capture.js pageSegments()) only reads
+// page-break-before off DIRECT children of .print-report to decide where
+// one captured segment ends and the next begins - a wrapper div here would
+// hide every additional page's own page-break-before from that check and
+// let two+ additional diagrams get silently merged into one oversized
+// segment (found via a real 3-diagram PDF: 2 additional pages produced
+// only 1 extra output page instead of 2). So each additional diagram page
+// must be inserted as its own direct sibling of #v33FullReportSiteDiagramPage
+// inside .print-report, never nested inside a shared container.
+function additionalDiagramPrintAnchor(){
+  return document.getElementById('v33FullReportSiteDiagramPage');
+}
+function buildAdditionalDiagramPageElement(rec, dataUrl){
+  const page=document.createElement('div');
+  page.className='v40-additional-diagram-page';
+  page.dataset.mediaId=rec.mediaId;
+  const logoSrc=getSiteDiagramLogoSrc();
+  page.innerHTML =
+    '<div class="v33-sheet">' +
+      (logoSrc ? '<img class="v33-logo" src="'+logoSrc+'" alt="COLAS">' : '') +
+      '<div class="v33-topline"></div>' +
+      '<div class="v33-form">' +
+        '<div class="v33-title"></div>' +
+        '<div class="v33-table">' +
+          '<div class="v33-cell v33-label">Customer:</div><div class="v33-cell v40-val-customer"></div>' +
+          '<div class="v33-cell v33-label">Job No:</div><div class="v33-cell v40-val-job"></div>' +
+          '<div class="v33-cell v33-label">Job Location:</div><div class="v33-cell v40-val-loc"></div>' +
+          '<div class="v33-cell v33-label">Date:</div><div class="v33-cell v40-val-date"></div>' +
+          '<div class="v33-cell v33-label">Lot #:</div><div class="v33-cell v40-val-lot"></div>' +
+          '<div class="v33-cell v33-label">Prepared By:</div><div class="v33-cell v40-val-prep"></div>' +
+        '</div>' +
+        '<div class="v33-maparea">' +
+          '<div class="v33-maplabel">Map Not to Scale</div>' +
+          '<img class="v33-diagram" alt="Additional Site Diagram">' +
+        '</div>' +
+        '<div class="v33-notes">Notes: <span class="v40-val-notes"></span></div>' +
+      '</div>' +
+      '<div class="v33-footer"><span>Uncontrolled Document when printed</span><span>Approved: Technical Manager - May 2017</span><span>Page 1 of 1</span></div>' +
+    '</div>';
+  page.querySelector('.v33-title').textContent='SITE DIAGRAM WORKSHEET — '+diagramDisplayTitle(rec);
+  page.querySelector('.v40-val-customer').textContent=getVal('sd_fCustomer');
+  page.querySelector('.v40-val-job').textContent=getVal('sd_fJob');
+  page.querySelector('.v40-val-loc').textContent=getVal('sd_fLoc');
+  page.querySelector('.v40-val-date').textContent=displayDate(getVal('sd_fDate'));
+  page.querySelector('.v40-val-lot').textContent=getVal('sd_fLot');
+  page.querySelector('.v40-val-prep').textContent=getVal('sd_fPrep');
+  page.querySelector('.v40-val-notes').textContent=(rec.description||'').trim();
+  page.querySelector('.v33-diagram').src=dataUrl;
+  return page;
+}
+function syncAdditionalDiagramPrintPages(){
+  const anchor=additionalDiagramPrintAnchor();
+  if(!anchor || !anchor.parentNode) return;
+  // Rebuilt from scratch every call - remove any pages from a previous sync
+  // (including a stray leftover container from before this fix) so nothing
+  // stale or duplicated is ever left in the DOM.
+  document.querySelectorAll('.v40-additional-diagram-page').forEach(el=>el.remove());
+  const stale=document.getElementById('sd_additionalDiagramPrintPages');
+  if(stale) stale.remove();
+  let insertAfter=anchor;
+  diagrams
+    .filter(d=>d.sequence>1 && d.onForm && additionalDiagramDataUrls[d.mediaId])
+    .sort((a,b)=>a.sequence-b.sequence)
+    .forEach(rec=>{
+      const el=buildAdditionalDiagramPageElement(rec, additionalDiagramDataUrls[rec.mediaId]);
+      insertAfter.parentNode.insertBefore(el, insertAfter.nextSibling);
+      insertAfter=el;
+    });
+}
+window.syncAdditionalDiagramPrintPages=syncAdditionalDiagramPrintPages;
+
+// One-time (per app load) decode of every already-completed additional
+// diagram's processed Blob into a cached data URL, done sequentially (one
+// Blob decode/canvas at a time, released immediately after) so opening a
+// draft with several HD diagrams never holds more than one decoded image
+// in memory at once.
+async function primeAdditionalDiagramPrintCache(){
+  const additional=diagrams.filter(d=>d.sequence>1 && d.onForm && d.processedBlob && !additionalDiagramDataUrls[d.mediaId]);
+  for(const rec of additional){
+    try{
+      const cc=await blobToCanvas(rec.processedBlob);
+      additionalDiagramDataUrls[rec.mediaId]=cc.toDataURL('image/png');
+      cc.width=0; cc.height=0;
+    }catch(_e){}
+  }
+}
+
+// Same beforeprint hook pattern already used by every other print-sync
+// function in this document (syncV113, fillV33SiteDiagramPrintPage,
+// syncPrintDiagramV101, ...) - covers the live browser print/PDF path.
+// The direct PDF capture path (print-pdf-capture.js) calls this by name
+// from its own syncPrintDom() list instead of via this event.
+window.addEventListener('beforeprint', function(){ try{ syncAdditionalDiagramPrintPages(); }catch(_e){} });
+
 window.restoreSiteDiagramMedia=async function(){
   if(!window.LotPackOffline) return;
   try{
-    const rec=await window.LotPackOffline.getSiteMedia();
-    if(!rec || !rec.originalBlob) return;
-    const oc=await blobToCanvas(rec.originalBlob);
-    state.originalCanvas=oc;
-    state.angle=rec.angle||0;
-    state.crop=rec.crop||defaultCrop();
-    state.onForm=!!rec.onForm;
-    state.history=[];
-    undoBtn.disabled=true;
-    setButtonsEnabled(true);
-    if(rec.settings){
-      ['sens','bg','dark','noise'].forEach(k=>{ if(rec.settings[k]!=null){ $('sd_'+k).value=rec.settings[k]; $('sd_'+k+'Val').textContent=rec.settings[k]; } });
+    diagrams=await window.LotPackOffline.getMediaByType('SITE_DIAGRAM');
+    if(!diagrams.length){
+      const main=await window.LotPackOffline.createMediaRecord('SITE_DIAGRAM', {});
+      diagrams=[main];
     }
-    drawSource();
-    renderBeforeView();
-    if(rec.cleanedBlob){
-      const cc=await blobToCanvas(rec.cleanedBlob);
-      out.width=cc.width; out.height=cc.height;
-      octx.drawImage(cc,0,0);
-      cc.width=0; cc.height=0;
-      downloadPng.disabled=false;
-      if(state.onForm){
-        const data=out.toDataURL('image/png');
-        window.siteDiagrams=[{name:'Clean Diagram',originalData:data,redrawnTemplateData:data,cleanRedrawReady:true}];
-        diagramImg.src=data; ph.style.display='none';
-      }
-      status('Restored from this device’s saved copy.', true);
-    }else{
-      runAutoCleanPreview(true);
-    }
-    try{ if(typeof window.applyIncludedAutoState === 'function') window.applyIncludedAutoState(); }catch(_e){}
+    const main=diagrams.find(d=>d.sequence===1) || diagrams[0];
+    await loadDiagramIntoEditor(main.mediaId);
+    await primeAdditionalDiagramPrintCache();
+    renderDiagramList();
+    try{ syncAdditionalDiagramPrintPages(); }catch(_e){}
   }catch(_e){}
 };
 })();
@@ -3674,6 +4101,14 @@ function incAnyNonEmpty(selector){
 }
 
 function incDetectSiteDiagram(){
+  // Phase B: TRUE when at least one active (not deleted) SITE_DIAGRAM for
+  // this draft has been committed ("Use Clean Diagram" pressed) - Main or
+  // any additional diagram. window.sdDiagramsReady() is a single read
+  // accessor over the Site Diagram module's own in-memory mirror of
+  // lotMedia, not a second/competing state copy.
+  try{
+    if(typeof window.sdDiagramsReady === 'function' && window.sdDiagramsReady()) return true;
+  }catch(_e){}
   try{
     if(window.siteDiagrams && window.siteDiagrams.length && window.siteDiagrams[0] && window.siteDiagrams[0].cleanRedrawReady) return true;
   }catch(_e){}
@@ -3684,7 +4119,10 @@ function incDetectSiteDiagram(){
     // diagram when a clean diagram is generated - so a different size (even
     // after reload, since the canvas bitmap persists in the normal offline
     // draft snapshot) means a genuine diagram exists. Presence of the tab
-    // or an untouched blank canvas is never treated as evidence.
+    // or an untouched blank canvas is never treated as evidence. This is
+    // only ever a fallback for the instant before the Site Diagram module
+    // has populated its own list (sdDiagramsReady), and only reflects the
+    // currently-selected diagram, not every diagram.
     if(out && out.width > 0 && out.height > 0 && !(out.width === 300 && out.height === 150)) return true;
   }catch(_e){}
   return false;

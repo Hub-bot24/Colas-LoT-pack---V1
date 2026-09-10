@@ -42,7 +42,7 @@
   }
 
   function syncPrintDom(){
-    ['v113SyncPrint','syncPrintDiagramV101','v33FillSiteDiagramPrintPage','syncQvcPrint','syncIncludedPrint','syncLotNotesPrint','syncMixPrint'].forEach(function(fn){
+    ['v113SyncPrint','syncPrintDiagramV101','v33FillSiteDiagramPrintPage','syncAdditionalDiagramPrintPages','syncQvcPrint','syncIncludedPrint','syncLotNotesPrint','syncMixPrint'].forEach(function(fn){
       try{ if(typeof window[fn] === 'function') window[fn](); }catch(_e){}
     });
   }

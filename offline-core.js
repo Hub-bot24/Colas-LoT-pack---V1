@@ -160,11 +160,14 @@
     return id;
   }
 
-  // ---- Generic lotMedia access (Phase A foundation) -----------------------
-  // Low-level primitives future evidence types (Site Photos, Ball Pen
-  // location diagrams, ...) build on. Nothing in the app calls these
-  // directly yet - Phase A intentionally ships no new UI - but they are the
-  // real, tested storage layer underneath saveSiteMedia/getSiteMedia below.
+  // ---- Generic lotMedia access ---------------------------------------------
+  // Low-level primitives every evidence type (Site Diagrams now; Site
+  // Photos, Ball Pen location diagrams later) builds on. Phase B is the
+  // first real caller - the Site Diagram module (index.html) now addresses
+  // every diagram, including the Main one, by its own permanent mediaId
+  // through these same functions, rather than through a Diagram-1-only
+  // shim. That keeps lotMedia the single source of truth instead of growing
+  // a second, competing read/write path.
   function getMediaRecord(mediaId){ return get(LOT_MEDIA, mediaId); }
   function saveMediaRecord(record){ return put(LOT_MEDIA, record); }
   async function getMediaByType(type){
@@ -175,68 +178,45 @@
     });
     return (rows || []).filter(r=>!r.deletedAt).sort((a,b)=>(a.sequence||0)-(b.sequence||0));
   }
-
-  // ---- Site Diagram media (back-compat shape) ------------------------------
-  // The Site Diagram module (index.html) still calls exactly these two
-  // functions with exactly the same field names it always has
-  // (angle/crop/settings/onForm/originalBlob/originalW/originalH/
-  // cleanedBlob/cleanedW/cleanedH) - it needed ZERO changes for this
-  // migration. Underneath, both now read/write the single
-  // {type:'SITE_DIAGRAM', sequence:1} record in lotMedia (the "main Site
-  // Diagram" for the current draft) instead of the old one-record-per-draft
-  // siteMedia store. siteMedia itself is no longer written to.
-  async function saveSiteMedia(record){
+  // Sequence numbers are assigned once, at creation, and never reused - even
+  // for a deleted record - so a later diagram can never inherit an earlier
+  // one's identity. Includes soft-deleted records in the max() on purpose.
+  async function nextMediaSequence(type){
     const draftId = currentDraftId();
-    const mediaId = siteDiagramMediaId(draftId);
-    const prior = await get(LOT_MEDIA, mediaId);
-    const now = new Date().toISOString();
-    const out = {
-      mediaId, draftId,
-      type:'SITE_DIAGRAM', sequence:1,
-      deletedAt:null,
-      createdAt:(prior && prior.createdAt) || now,
-      updatedAt: now,
-      onForm: !!record.onForm,
-      rotation: record.angle || 0,
-      crop: record.crop || null,
-      settings: record.settings || null,
-      title: (prior && prior.title) || '',
-      description: (prior && prior.description) || ''
-    };
-    // Mirror the old record's field-presence semantics exactly: the caller
-    // (doPersist in index.html) already merges with the previous
-    // getSiteMedia() result itself and explicitly deletes cleanedBlob/W/H on
-    // a brand-new original, so "key present vs absent" on the incoming
-    // `record` is the real signal, not a truthiness check.
-    if('originalBlob' in record){
-      out.sourceBlob = record.originalBlob;
-      out.sourceWidth = record.originalW;
-      out.sourceHeight = record.originalH;
-    }else if(prior){
-      out.sourceBlob = prior.sourceBlob; out.sourceWidth = prior.sourceWidth; out.sourceHeight = prior.sourceHeight;
-    }
-    if('cleanedBlob' in record){
-      out.processedBlob = record.cleanedBlob;
-      out.processedWidth = record.cleanedW;
-      out.processedHeight = record.cleanedH;
-    }
-    await put(LOT_MEDIA, out);
-    return out;
+    const rows = await txRequest(LOT_MEDIA,'readonly', s=>{
+      const range = IDBKeyRange.bound([draftId,type,-Infinity],[draftId,type,Infinity]);
+      return s.index('draftId_type_sequence').getAll(range);
+    });
+    let max = 0;
+    (rows || []).forEach(r => { if(typeof r.sequence === 'number' && r.sequence > max) max = r.sequence; });
+    return max + 1;
   }
-  async function getSiteMedia(){
-    const rec = await get(LOT_MEDIA, siteDiagramMediaId(currentDraftId()));
-    if(!rec || rec.deletedAt) return null;
-    const out = {
-      draftId: rec.draftId,
-      updatedAt: rec.updatedAt,
-      angle: rec.rotation || 0,
-      crop: rec.crop || null,
-      settings: rec.settings || null,
-      onForm: !!rec.onForm
-    };
-    if(rec.sourceBlob){ out.originalBlob = rec.sourceBlob; out.originalW = rec.sourceWidth; out.originalH = rec.sourceHeight; }
-    if(rec.processedBlob){ out.cleanedBlob = rec.processedBlob; out.cleanedW = rec.processedWidth; out.cleanedH = rec.processedHeight; }
-    return out;
+  // Creates a new, independent media record with a permanent random mediaId
+  // (deliberately NOT derived from sequence - sequence is display/print
+  // order, mediaId is permanent identity, and the two must be free to stay
+  // correct independently, e.g. across a future delete/reorder).
+  async function createMediaRecord(type, patch){
+    const draftId = currentDraftId();
+    const sequence = await nextMediaSequence(type);
+    const now = new Date().toISOString();
+    const record = Object.assign(
+      {onForm:false, rotation:0, crop:null, settings:null, title:'', description:''},
+      patch || {},
+      {mediaId:uuid('media-'), draftId, type, sequence, deletedAt:null, createdAt:now, updatedAt:now}
+    );
+    await put(LOT_MEDIA, record);
+    return record;
+  }
+  // Tombstone, never a hard delete - unsynced evidence is never silently
+  // discarded. Never touches any other record's Blob.
+  async function softDeleteMedia(mediaId){
+    const rec = await get(LOT_MEDIA, mediaId);
+    if(!rec) return null;
+    const now = new Date().toISOString();
+    rec.deletedAt = now;
+    rec.updatedAt = now;
+    await put(LOT_MEDIA, rec);
+    return rec;
   }
 
   function fieldKey(el,index){ return el.id || el.name || ('field-' + index); }
@@ -563,11 +543,12 @@
     ensureUi(); await openDb();
     window.LotPackOffline = {
       getCurrentDraftId: currentDraftId,
-      saveSiteMedia, getSiteMedia,
-      // Generic lotMedia primitives - not called anywhere yet (Phase A ships
-      // no new UI), reserved for the Multiple Site Diagrams / Site Photos /
-      // Ball Pen Location phases so they build on the same tested store.
-      getMediaRecord, saveMediaRecord, getMediaByType
+      // Generic lotMedia primitives. The Site Diagram module (index.html)
+      // is the first real caller (Phase B) - every diagram, Main included,
+      // goes through these by its own mediaId; there is no more separate
+      // Diagram-1-only save/get pair to keep in sync with this store.
+      getMediaRecord, saveMediaRecord, getMediaByType,
+      nextMediaSequence, createMediaRecord, softDeleteMedia
     };
     await requestPersistentStorage(); await restoreCurrentDraft();
     document.addEventListener('input',scheduleSave,true);
